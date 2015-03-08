@@ -1,0 +1,5 @@
+main.o: src/main.cpp include/shader.h include/terrain.h \
+  include/constants.h
+terrain.o: src/terrain.cpp include/terrain.h include/constants.h
+camera.o: src/camera.cpp include/camera.h include/constants.h
+shader.o: src/shader.cpp include/shader.h
