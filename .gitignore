@@ -1,0 +1,5 @@
+# ignore binaries
+run_tests
+litlanes
+
+Makefile.dep
