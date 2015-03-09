@@ -17,7 +17,7 @@ INC := -I include
 DEPENDFILE := Makefile.dep
 
 TESTDIR := test
-TESTSOURCES := src/camera.cpp
+TESTSOURCES := src/terrain.cpp
 TESTTARGET := run_tests
 TESTS := $(shell find $(TESTDIR) -type f -name *.$(SRCEXT))
 TESTLIB := -lgtest -lpthread
