@@ -1,0 +1,10 @@
+---
+Language:        Cpp
+BasedOnStyle:  LLVM
+AccessModifierOffset: -1
+ConstructorInitializerIndentWidth: 4
+AlignEscapedNewlinesLeft: true
+AllowShortFunctionsOnASingleLine: None
+ColumnLimit:     80
+CommentPragmas:  '^ IWYU pragma:'
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
