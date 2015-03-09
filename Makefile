@@ -46,7 +46,7 @@ $(TARGET): $(OBJECTS)
 	$(CC) $^ -o $(TARGET) $(LIB)
 
 $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
-	@mkdir -p $(BUILDD$()IR)
+	@mkdir -p $(BUILDDIR)
 	$(CC) $(LDFLAGS) $(CXXFLAGS) $(INC) -c -o $@ $<
 
 test: $(TESTSOURCES)
