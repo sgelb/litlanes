@@ -1,5 +1,4 @@
-#ifndef SHADER_H_
-#define SHADER_H_
+#pragma once
 
 #include <GL/glew.h>
 #include <string>
@@ -8,11 +7,11 @@
 #include <iostream>
 
 class Shader {
-
-public:
-  GLuint Program;
+ public:
   Shader(const GLchar *vertexSourcePath, const GLchar *fragmentSourcePath);
-  void Use();
-};
+  void use();
+  GLuint getProgram();
 
-#endif // SHADER_H_
+ private:
+  GLuint program;
+};

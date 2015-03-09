@@ -1,12 +1,12 @@
 #include <terrain.h>
 
 // TODO: create Vertice class and divide position and color
+// TODO: write tests
 
 Terrain::Terrain(const GLuint meshSize) : meshSize(meshSize) {
   this->createVertices();
   this->createIndices();
 }
-
 
 void Terrain::createVertices() {
 
@@ -16,8 +16,8 @@ void Terrain::createVertices() {
      |
      |
      +-----> x
-    / 
-  z/ 
+    /
+  z/
 
   the polygon mesh consists of vertices forming a large square from (0, y, 0) to
   (width, y, width) with width*width subtiles. each subtile is split in two
@@ -28,10 +28,9 @@ void Terrain::createVertices() {
   this->vertices = std::vector<GLfloat>();
   noise::module::Perlin noise;
 
-
   for (size_t z = 0; z < meshSize; z++) {
     for (size_t x = 0; x < meshSize; x++) {
-      // use x and z (mapped to [-1, 1]) to create height generated with 
+      // use x and z (mapped to [-1, 1]) to create height generated with
       // perlin noise.
       GLfloat y = noise.GetValue(mapToInterval(x), 0.5f, mapToInterval(z));
 
@@ -47,11 +46,10 @@ void Terrain::createVertices() {
   }
 }
 
-
 void Terrain::createIndices() {
   this->indices = std::vector<GLuint>();
-  for (size_t z = 0; z < meshSize-1; z++) {
-    for (size_t x = 0; x < meshSize-1; x++) {
+  for (size_t z = 0; z < meshSize - 1; z++) {
+    for (size_t x = 0; x < meshSize - 1; x++) {
       /*
 
       +---x
@@ -64,7 +62,7 @@ void Terrain::createIndices() {
 
       */
 
-      GLuint tl = x + meshSize*z;
+      GLuint tl = x + meshSize * z;
       GLuint tr = tl + 1;
       GLuint bl = tl + meshSize;
       GLuint br = bl + 1;
@@ -92,5 +90,5 @@ std::vector<GLfloat> Terrain::getVertices() {
 
 GLfloat Terrain::mapToInterval(const GLfloat &input) {
   // map input from [0, Constants::MeshWidth] to [-1, 1]
-  return 2 * (input/Constants::MeshWidth) - 1;
+  return 2 * (input / Constants::MeshWidth) - 1;
 }

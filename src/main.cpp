@@ -21,6 +21,7 @@
 #include <shader.h>
 #include <terrain.h>
 #include <constants.h>
+#include <camera.h>
 
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
@@ -30,17 +31,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void do_movement();
 
 // Camera
-glm::vec3 cameraPos = glm::vec3(Constants::MeshWidth/2, 6.0f, 0.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, -1.0f, 0.5f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-// Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a
-// direction vector pointing to the right (due to how Eular angles work) so we
-// initially rotate a bit to the left.
-GLfloat yaw = -90.0f;
-GLfloat pitch = 0.0f;
-GLfloat lastX = Constants::WindowWidth / 2.0;
-GLfloat lastY = Constants::WindowHeight / 2.0;
-GLfloat aspect = 45.0f;
+Camera camera(glm::vec3(Constants::MeshWidth / 2, 60.0f,
+                        Constants::MeshWidth / 2));
 bool keys[1024];
 
 // Deltatime
@@ -62,8 +54,9 @@ int main() {
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
   // Create a GLFWwindow object that we can use for GLFW's functions
-  GLFWwindow *window = glfwCreateWindow(Constants::WindowWidth,
-      Constants::WindowHeight, "litlanesfoss", nullptr, nullptr);
+  GLFWwindow *window =
+      glfwCreateWindow(Constants::WindowWidth, Constants::WindowHeight,
+                       "litlanesfoss", nullptr, nullptr);
   glfwMakeContextCurrent(window);
 
   // Set the required callback functions
@@ -85,12 +78,11 @@ int main() {
 
   glEnable(GL_DEPTH_TEST);
 
-
   // CREATE STUFF
   ///////////////
 
   // Build and compile our shader program
-  Shader defaultShader("shaders/default.vert", "shaders/default.frag");
+  Shader terraShader("shaders/default.vert", "shaders/default.frag");
 
   // Set up vertex data (and buffer(s)) and attribute pointers
   // Create vertices of mesh of 2^Constants::MeshWidth
@@ -111,12 +103,12 @@ int main() {
   // then bind and set vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat),
-      &vertices.front(), GL_STATIC_DRAW);
+               &vertices.front(), GL_STATIC_DRAW);
 
   // the element buffer
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint),
-      &indices.front(), GL_STATIC_DRAW);
+               &indices.front(), GL_STATIC_DRAW);
 
   // Position attribute
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
@@ -149,25 +141,25 @@ int main() {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
     // Activate shader
-    defaultShader.Use();
+    terraShader.use();
 
     // Camera/View transformation
     glm::mat4 view;
-    view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+    view = camera.getViewMatrix();
 
     // Projection
     glm::mat4 projection;
-    projection = glm::perspective(aspect,
-        static_cast<GLfloat>(Constants::WindowWidth) /
-        static_cast<GLfloat>(Constants::WindowHeight), Constants::NearPlane, 
-        Constants::FarPlane);
+    projection = glm::perspective(
+        camera.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
+                              static_cast<GLfloat>(Constants::WindowHeight),
+        Constants::NearPlane, Constants::FarPlane);
 
     // Get the uniform locations
-    GLint modelLoc = glGetUniformLocation(defaultShader.Program, "model");
-    GLint viewLoc = glGetUniformLocation(defaultShader.Program, "view");
-    GLint projLoc = glGetUniformLocation(defaultShader.Program, "projection");
+    GLint modelLoc = glGetUniformLocation(terraShader.getProgram(), "model");
+    GLint viewLoc = glGetUniformLocation(terraShader.getProgram(), "view");
+    GLint projLoc =
+        glGetUniformLocation(terraShader.getProgram(), "projection");
 
     // Pass the matrices to the shader
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -197,11 +189,9 @@ int main() {
   return 0;
 }
 
-
-
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
-    int mode) {
+                  int mode) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     glfwSetWindowShouldClose(window, GL_TRUE);
   if (key >= 0 && key < 1024) {
@@ -209,66 +199,46 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
       keys[key] = true;
     } else if (action == GLFW_RELEASE) {
       keys[key] = false;
-      std::cout << "Camera: " << cameraPos.x << ", " << cameraPos.y << ", " <<
-        cameraPos.z << std::endl;
     }
   }
 }
 
 void do_movement() {
-  // Camera controls
-  GLfloat cameraSpeed = 5.0f * deltaTime;
-  if (keys[GLFW_KEY_W])
-    cameraPos += cameraSpeed * cameraFront;
-  if (keys[GLFW_KEY_S])
-    cameraPos -= cameraSpeed * cameraFront;
-  if (keys[GLFW_KEY_A])
-    cameraPos -=
-        glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-  if (keys[GLFW_KEY_D])
-    cameraPos +=
-        glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+  // Camera keyboard controls
+  if (keys[GLFW_KEY_W]) {
+    camera.processKeyboard(Camera::Forward, deltaTime);
+  }
+  if (keys[GLFW_KEY_S]) {
+    camera.processKeyboard(Camera::Backward, deltaTime);
+  }
+  if (keys[GLFW_KEY_A]) {
+    camera.processKeyboard(Camera::Left, deltaTime);
+  }
+  if (keys[GLFW_KEY_D]) {
+    camera.processKeyboard(Camera::Right, deltaTime);
+  }
 }
 
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   static bool firstMouse = true;
+  static GLfloat lastX;
+  static GLfloat lastY;
+
   if (firstMouse) {
-    lastX = xpos;
-    lastY = ypos;
+    lastX = static_cast<GLfloat>(xpos);
+    lastY = static_cast<GLfloat>(ypos);
     firstMouse = false;
   }
 
   GLfloat xoffset = xpos - lastX;
   // Reversed since y-coordinates go from bottom to left
   GLfloat yoffset = lastY - ypos;
-  lastX = xpos;
-  lastY = ypos;
+  lastX = static_cast<GLfloat>(xpos);
+  lastY = static_cast<GLfloat>(ypos);
 
-  GLfloat sensitivity = 0.05; // Change this value to your liking
-  xoffset *= sensitivity;
-  yoffset *= sensitivity;
-
-  yaw += xoffset;
-  pitch += yoffset;
-
-  // Make sure that when pitch is out of bounds, screen doesn't get flipped
-  if (pitch > 89.0f)
-    pitch = 89.0f;
-  if (pitch < -89.0f)
-    pitch = -89.0f;
-
-  glm::vec3 front;
-  front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-  front.y = sin(glm::radians(pitch));
-  front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-  cameraFront = glm::normalize(front);
+  camera.processMouseMovement(xoffset, yoffset, true);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-  if (aspect >= 1.0f && aspect <= 45.0f)
-    aspect -= yoffset;
-  if (aspect <= 1.0f)
-    aspect = 1.0f;
-  if (aspect >= 45.0f)
-    aspect = 45.0f;
+  camera.processMouseScroll(static_cast<GLfloat>(yoffset));
 }
