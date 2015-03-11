@@ -2,26 +2,19 @@
 #include <cmath>
 #include <vector>
 
-// GLEW
 #define GLEW_STATIC
 #include <GL/glew.h>
 
-// GLFW
 #include <GLFW/glfw3.h>
 
-// Other Libs
-/* #include <SOIL.h> */
-
-// GLM Mathematics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// Other includes
-#include <shader.h>
-#include <terrain.h>
-#include <constants.h>
-#include <camera.h>
+#include "shader.h"
+#include "terrain.h"
+#include "constants.h"
+#include "camera.h"
 
 // Function prototypes
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
@@ -148,12 +141,12 @@ int main() {
 
     // Camera/View transformation
     glm::mat4 view;
-    view = camera.getViewMatrix();
+    view = ::camera.getViewMatrix();
 
     // Projection
     glm::mat4 projection;
     projection = glm::perspective(
-        camera.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
+        ::camera.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
                               static_cast<GLfloat>(Constants::WindowHeight),
         Constants::NearPlane, Constants::FarPlane);
 
@@ -209,22 +202,22 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
 void do_movement() {
   // Camera keyboard controls
   if (keys[GLFW_KEY_W]) {
-    camera.processKeyboard(Camera::FORWARD, deltaTime);
+    ::camera.processKeyboard(Camera::FORWARD, deltaTime);
   }
   if (keys[GLFW_KEY_S]) {
-    camera.processKeyboard(Camera::BACKWARD, deltaTime);
+    ::camera.processKeyboard(Camera::BACKWARD, deltaTime);
   }
   if (keys[GLFW_KEY_A]) {
-    camera.processKeyboard(Camera::LEFT, deltaTime);
+    ::camera.processKeyboard(Camera::LEFT, deltaTime);
   }
   if (keys[GLFW_KEY_D]) {
-    camera.processKeyboard(Camera::RIGHT, deltaTime);
+    ::camera.processKeyboard(Camera::RIGHT, deltaTime);
   }
   if (keys[GLFW_KEY_E]) {
-    camera.processKeyboard(Camera::UP, deltaTime);
+    ::camera.processKeyboard(Camera::UP, deltaTime);
   }
   if (keys[GLFW_KEY_Q]) {
-    camera.processKeyboard(Camera::DOWN, deltaTime);
+    ::camera.processKeyboard(Camera::DOWN, deltaTime);
   }
 }
 
@@ -245,9 +238,9 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   lastX = static_cast<GLfloat>(xpos);
   lastY = static_cast<GLfloat>(ypos);
 
-  camera.processMouseMovement(xoffset, yoffset);
+  ::camera.processMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-  camera.processMouseScroll(static_cast<GLfloat>(yoffset));
+  ::camera.processMouseScroll(static_cast<GLfloat>(yoffset));
 }

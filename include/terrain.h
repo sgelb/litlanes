@@ -1,15 +1,12 @@
 #pragma once
 
-// GLFW
-#include <GLFW/glfw3.h>
-
-// libnoise
-#include <noise/noise.h>
-
-#include <constants.h>
-
 #include <vector>
 #include <iostream>
+
+#include <noise/noise.h>
+#include <GLFW/glfw3.h>
+
+#include "constants.h"
 
 class Terrain {
  public:

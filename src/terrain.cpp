@@ -1,4 +1,4 @@
-#include <terrain.h>
+#include "terrain.h"
 
 // TODO: create Vertice class and divide position and color
 // TODO: write tests
