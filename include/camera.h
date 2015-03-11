@@ -38,8 +38,7 @@ class Camera {
 
   // Processes input received from a mouse input system. Expects the offset
   // value in both the x and y direction.
-  void processMouseMovement(GLfloat xoffset, GLfloat yoffset,
-                            GLboolean constrainPitch = true);
+  void processMouseMovement(GLfloat xoffset, GLfloat yoffset);
 
   // Processes input received from a mouse scroll-wheel event. Only requires
   // input on the vertical wheel-axis
@@ -49,20 +48,20 @@ class Camera {
 
  private:
   // Camera Attributes
-  glm::vec3 position;
-  glm::vec3 front;
-  glm::vec3 up;
-  glm::vec3 right;
-  glm::vec3 worldUp;
+  glm::vec3 position_;
+  glm::vec3 front_;
+  glm::vec3 up_;
+  glm::vec3 right_;
+  glm::vec3 worldUp_;
 
   // Eular Angles
-  GLfloat yaw;
-  GLfloat pitch;
+  GLfloat yaw_;
+  GLfloat pitch_;
 
   // Camera options
-  GLfloat movementSpeed;
-  GLfloat mouseSensitivity;
-  GLfloat zoom;
+  GLfloat movementSpeed_;
+  GLfloat mouseSensitivity_;
+  GLfloat zoom_;
 
   // Calculates the front vector from the Camera's (updated) Eular Angles
   void updateCameraVectors();

@@ -4,8 +4,8 @@ namespace Constants {
 // WINDOW
 
 // default width and height of window
-static const GLuint WindowWidth = 800;
-static const GLuint WindowHeight = 600;
+static const GLuint WindowWidth = 1200;
+static const GLuint WindowHeight = 800;
 
 // CAMERA
 
@@ -23,7 +23,7 @@ static const GLfloat Sensitivty = 0.5f;
 // TERRAIN
 
 // default width of terrain mesh
-static const GLuint MeshWidth = 128;
+static const GLuint MeshWidth = 256;
 
 // max height of terrain mesh
 static const GLfloat MaxMeshHeight = 50.0f;

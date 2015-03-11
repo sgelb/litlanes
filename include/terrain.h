@@ -18,10 +18,10 @@ class Terrain {
   std::vector<GLuint> getIndices();
 
  private:
-  GLuint meshSize;
+  GLuint meshSize_;
+  std::vector<GLfloat> vertices_;
+  std::vector<GLuint> indices_;
   void createVertices();
   void createIndices();
-  std::vector<GLfloat> vertices;
-  std::vector<GLuint> indices;
   GLfloat mapToInterval(const GLfloat &input);
 };

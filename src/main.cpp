@@ -44,6 +44,7 @@ int main() {
 
   // INITALIZE
   ////////////
+  // TODO: create Init-methods
 
   // Init GLFW
   glfwInit();
@@ -126,6 +127,7 @@ int main() {
 
   // Game loop
   while (!glfwWindowShouldClose(window)) {
+    // TODO: refactor in processInput(), update(), render()
     // Calculate deltatime of current frame
     GLfloat currentFrame = glfwGetTime();
     deltaTime = currentFrame - lastFrame;
@@ -185,6 +187,7 @@ int main() {
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
   // Terminate GLFW, clearing any resources allocated by GLFW.
+  glfwDestroyWindow(window);
   glfwTerminate();
   return 0;
 }
@@ -242,7 +245,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   lastX = static_cast<GLfloat>(xpos);
   lastY = static_cast<GLfloat>(ypos);
 
-  camera.processMouseMovement(xoffset, yoffset, true);
+  camera.processMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {

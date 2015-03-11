@@ -3,7 +3,7 @@
 // TODO: create Vertice class and divide position and color
 // TODO: write tests
 
-Terrain::Terrain(const GLuint meshSize) : meshSize(meshSize) {
+Terrain::Terrain(const GLuint meshSize) : meshSize_(meshSize) {
   this->createVertices();
   this->createIndices();
 }
@@ -25,31 +25,33 @@ void Terrain::createVertices() {
 
   */
 
-  this->vertices = std::vector<GLfloat>();
+  this->vertices_ = std::vector<GLfloat>();
   noise::module::Perlin noise;
 
-  for (size_t z = 0; z < meshSize; z++) {
-    for (size_t x = 0; x < meshSize; x++) {
+  for (size_t z = 0; z < this->meshSize_; z++) {
+    for (size_t x = 0; x < this->meshSize_; x++) {
       // use x and z (mapped to [-1, 1]) to create height generated with
       // perlin noise.
       GLfloat y = noise.GetValue(mapToInterval(x), 0.5f, mapToInterval(z));
 
       // coordinates
-      vertices.push_back(static_cast<GLfloat>(x));
-      vertices.push_back(static_cast<GLfloat>(Constants::MaxMeshHeight * y));
-      vertices.push_back(static_cast<GLfloat>(z));
+      this->vertices_.push_back(static_cast<GLfloat>(x));
+      this->vertices_.push_back(
+          static_cast<GLfloat>(Constants::MaxMeshHeight *y));
+      this->vertices_.push_back(static_cast<GLfloat>(z));
+
       // color
-      vertices.push_back(static_cast<GLfloat>(y));
-      vertices.push_back(static_cast<GLfloat>(y));
-      vertices.push_back(static_cast<GLfloat>(y));
+      this->vertices_.push_back(static_cast<GLfloat>(y));
+      this->vertices_.push_back(static_cast<GLfloat>(y));
+      this->vertices_.push_back(static_cast<GLfloat>(y));
     }
   }
 }
 
 void Terrain::createIndices() {
-  this->indices = std::vector<GLuint>();
-  for (size_t z = 0; z < meshSize - 1; z++) {
-    for (size_t x = 0; x < meshSize - 1; x++) {
+  this->indices_ = std::vector<GLuint>();
+  for (size_t z = 0; z < this->meshSize_ - 1; z++) {
+    for (size_t x = 0; x < this->meshSize_ - 1; x++) {
       /*
 
       +---x
@@ -62,30 +64,30 @@ void Terrain::createIndices() {
 
       */
 
-      GLuint tl = x + meshSize * z;
+      GLuint tl = x + this->meshSize_ * z;
       GLuint tr = tl + 1;
-      GLuint bl = tl + meshSize;
+      GLuint bl = tl + this->meshSize_;
       GLuint br = bl + 1;
 
       // left triangle
-      indices.push_back(tl);
-      indices.push_back(bl);
-      indices.push_back(br);
+      this->indices_.push_back(tl);
+      this->indices_.push_back(bl);
+      this->indices_.push_back(br);
 
       // right triangle
-      indices.push_back(tl);
-      indices.push_back(br);
-      indices.push_back(tr);
+      this->indices_.push_back(tl);
+      this->indices_.push_back(br);
+      this->indices_.push_back(tr);
     }
   }
 }
 
 std::vector<GLuint> Terrain::getIndices() {
-  return this->indices;
+  return this->indices_;
 }
 
 std::vector<GLfloat> Terrain::getVertices() {
-  return this->vertices;
+  return this->vertices_;
 }
 
 GLfloat Terrain::mapToInterval(const GLfloat &input) {

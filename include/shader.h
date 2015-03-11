@@ -13,5 +13,5 @@ class Shader {
   GLuint getProgram();
 
  private:
-  GLuint program;
+  GLuint program_;
 };

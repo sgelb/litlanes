@@ -2,14 +2,14 @@
 
 // Constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch)
-    : front(glm::vec3(0.0f, 0.0f, -1.0f)),
-      movementSpeed(Constants::Speed),
-      mouseSensitivity(Constants::Sensitivty),
-      zoom(Constants::Zoom) {
-  this->position = position;
-  this->worldUp = up;
-  this->yaw = yaw;
-  this->pitch = pitch;
+    : front_(glm::vec3(0.0f, 0.0f, -1.0f)),
+      movementSpeed_(Constants::Speed),
+      mouseSensitivity_(Constants::Sensitivty),
+      zoom_(Constants::Zoom) {
+  this->position_ = position;
+  this->worldUp_ = up;
+  this->yaw_ = yaw;
+  this->pitch_ = pitch;
   this->updateCameraVectors();
 }
 
@@ -22,7 +22,7 @@ Camera::Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX,
 
 // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
 glm::mat4 Camera::getViewMatrix() {
-  return glm::lookAt(this->position, this->position + this->front, this->up);
+  return glm::lookAt(this->position_, this->position_ + this->front_, this->up_);
 }
 
 // Processes input received from any keyboard-like input system. Accepts input
@@ -57,21 +57,19 @@ void Camera::processKeyboard(CameraMovement direction, GLfloat deltaTime) {
 
 // Processes input received from a mouse input system. Expects the offset
 // value in both the x and y direction.
-void Camera::processMouseMovement(GLfloat xoffset, GLfloat yoffset,
-                                  GLboolean constrainPitch) {
-  // FIXME
-  xoffset *= this->mouseSensitivity;
-  yoffset *= this->mouseSensitivity;
+void Camera::processMouseMovement(GLfloat xoffset, GLfloat yoffset) {
+  xoffset *= this->mouseSensitivity_;
+  yoffset *= this->mouseSensitivity_;
 
-  this->yaw += xoffset;
-  this->pitch += yoffset;
+  this->yaw_ += xoffset;  // rotate around local y-axis
+  this->pitch_ += yoffset;  // rotate around local x-axis
 
-  // Make sure that when pitch is out of bounds, screen doesn't get flipped
-  if (constrainPitch) {
-    if (this->pitch > 90.0f)
-      this->pitch = 90.0f;
-    if (this->pitch < -90.0f)
-      this->pitch = -90.0f;
+  // prevent camera to flip over
+  if (this->pitch_ > 89.0f) {
+    this->pitch_ = 89.0f;
+  }
+  if (this->pitch_ < -89.0f) {
+    this->pitch_ = -89.0f;
   }
 
   // Update Front, Right and Up Vectors using the updated Eular angles
@@ -82,29 +80,29 @@ void Camera::processMouseMovement(GLfloat xoffset, GLfloat yoffset,
 // input on the vertical wheel-axis
 void Camera::processMouseScroll(GLfloat yoffset) {
   // FIXME
-  if (this->zoom >= 1.0f && this->zoom <= 45.0f)
-    this->zoom -= yoffset;
-  if (this->zoom <= 1.0f)
-    this->zoom = 1.0f;
-  if (this->zoom >= 45.0f)
-    this->zoom = 45.0f;
+  if (this->zoom_ >= 1.0f && this->zoom_ <= 45.0f)
+    this->zoom_ -= yoffset;
+  if (this->zoom_ <= 1.0f)
+    this->zoom_ = 1.0f;
+  if (this->zoom_ >= 45.0f)
+    this->zoom_ = 45.0f;
 }
 
 // Calculates the front vector from the Camera's (updated) Eular Angles
 void Camera::updateCameraVectors() {
   // Calculate the new Front vector
   glm::vec3 front;
-  front.x = cos(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
-  front.y = sin(glm::radians(this->pitch));
-  front.z = sin(glm::radians(this->yaw)) * cos(glm::radians(this->pitch));
-  this->front = glm::normalize(front);
+  front.x = cos(glm::radians(this->yaw_)) * cos(glm::radians(this->pitch_));
+  front.y = sin(glm::radians(this->pitch_));
+  front.z = sin(glm::radians(this->yaw_)) * cos(glm::radians(this->pitch_));
+  this->front_ = glm::normalize(front);
   // Also re-calculate the Right and Up vector
-  this->right = glm::normalize(glm::cross(this->front, this->worldUp));
+  this->right_ = glm::normalize(glm::cross(this->front_, this->worldUp_));
   // Normalize the vectors, because their length gets closer to 0 the more you
   // look up or down which results in slower movement.
-  this->up = glm::normalize(glm::cross(this->right, this->front));
+  this->up_ = glm::normalize(glm::cross(this->right_, this->front_));
 }
 
 GLfloat Camera::getZoom() {
-  return this->zoom;
+  return this->zoom_;
 }
