@@ -206,16 +206,22 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
 void do_movement() {
   // Camera keyboard controls
   if (keys[GLFW_KEY_W]) {
-    camera.processKeyboard(Camera::Forward, deltaTime);
+    camera.processKeyboard(Camera::FORWARD, deltaTime);
   }
   if (keys[GLFW_KEY_S]) {
-    camera.processKeyboard(Camera::Backward, deltaTime);
+    camera.processKeyboard(Camera::BACKWARD, deltaTime);
   }
   if (keys[GLFW_KEY_A]) {
-    camera.processKeyboard(Camera::Left, deltaTime);
+    camera.processKeyboard(Camera::LEFT, deltaTime);
   }
   if (keys[GLFW_KEY_D]) {
-    camera.processKeyboard(Camera::Right, deltaTime);
+    camera.processKeyboard(Camera::RIGHT, deltaTime);
+  }
+  if (keys[GLFW_KEY_E]) {
+    camera.processKeyboard(Camera::UP, deltaTime);
+  }
+  if (keys[GLFW_KEY_Q]) {
+    camera.processKeyboard(Camera::DOWN, deltaTime);
   }
 }
 

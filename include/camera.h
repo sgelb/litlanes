@@ -17,7 +17,7 @@ class Camera {
  public:
   // Defines several possible options for camera movement. Used as
   // abstraction to stay away from window-system specific input methods
-  enum CameraMovement { Forward, Backward, Left, Right };
+  enum CameraMovement { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN };
 
   // Constructor with vectors
   Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
