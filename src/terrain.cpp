@@ -37,16 +37,16 @@ void Terrain::createVertices() {
       // coordinates
       this->vertices_.push_back(static_cast<GLfloat>(x));
       this->vertices_.push_back(
-          static_cast<GLfloat>(Constants::MaxMeshHeight *y));
+          static_cast<GLfloat>(Constants::MaxMeshHeight * y));
       this->vertices_.push_back(static_cast<GLfloat>(z));
 
       // color
-      this->vertices_.push_back(static_cast<GLfloat>(y));
-      this->vertices_.push_back(static_cast<GLfloat>(y));
-      this->vertices_.push_back(static_cast<GLfloat>(y));
+      std::vector<GLfloat> color = colorFromHeight(y);
+      this->vertices_.insert(this->vertices_.end(), color.begin(), color.end());
     }
   }
 }
+
 
 void Terrain::createIndices() {
   this->indices_ = std::vector<GLuint>();
@@ -81,6 +81,36 @@ void Terrain::createIndices() {
     }
   }
 }
+
+
+std::vector<GLfloat> Terrain::colorFromHeight(GLfloat height) {
+  // simplified color model with 5 "height zones"
+
+  if (height > 0.9) {
+    // snow
+    std::vector<GLfloat> color = {1.0f, 1.0f, 1.0f};
+    return color;
+  }
+  if (height > 0.3) {
+    // rock
+    std::vector<GLfloat> color = {0.5f, 0.5f, 0.5f};
+    return color;
+  }
+  if (height > -0.5) {
+    // forest
+    std::vector<GLfloat> color = {0.2f, 0.4f, 0.25f};
+    return color;
+  }
+  if (height > -0.55) {
+    // beach
+    std::vector<GLfloat> color = {0.65f, 0.65f, 0.0f};
+    return color;
+  }
+  // water
+  std::vector<GLfloat> color = {0.0f, 0.5f, 1.0f};
+  return color;
+}
+
 
 std::vector<GLuint> Terrain::getIndices() {
   return this->indices_;

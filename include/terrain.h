@@ -21,4 +21,5 @@ class Terrain {
   void createVertices();
   void createIndices();
   GLfloat mapToInterval(const GLfloat &input);
+  std::vector<GLfloat> colorFromHeight(GLfloat height);
 };
