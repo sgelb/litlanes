@@ -80,6 +80,8 @@ int main() {
   // Set up vertex data (and buffer(s)) and attribute pointers
   // Create vertices of mesh of 2^Constants::MeshWidth
   Terrain terrain;
+  terrain.setAlgorithm(Constants::Perlin);
+  terrain.create();
   auto vertices = terrain.getVertices();
   auto indices = terrain.getIndices();
 

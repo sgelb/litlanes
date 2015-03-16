@@ -22,10 +22,14 @@ static const GLfloat Sensitivty = 0.5f;
 
 // TERRAIN
 
+// noise algorithms
+static const int Perlin = 1;
+static const int RidgedMulti = 2;
+
 // default width of terrain mesh
 static const GLuint MeshWidth = 256;
 
 // max height of terrain mesh
 static const GLfloat MaxMeshHeight = 50.0f;
 
-}; // namespace Constants
+} // namespace Constants

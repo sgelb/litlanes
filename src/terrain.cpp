@@ -2,8 +2,32 @@
 
 // TODO: create Vertice class and divide position and color
 // TODO: write tests
+// TODO: use smart pointer for noise_
 
 Terrain::Terrain(const GLuint meshSize) : meshSize_(meshSize) {
+  this->noise_ = nullptr;
+}
+
+Terrain::~Terrain() {
+  delete this->noise_;
+}
+
+void Terrain::setAlgorithm(int algorithm) {
+  switch (algorithm) {
+    case Constants::Perlin:
+      delete this->noise_;
+      this->noise_ = new noise::module::Perlin();
+      break;
+    case Constants::RidgedMulti:
+      delete this->noise_;
+      this->noise_ = new noise::module::RidgedMulti();
+    default:
+      delete this->noise_;
+      this->noise_ = new noise::module::RidgedMulti();
+  }
+}
+
+void Terrain::create() {
   this->createVertices();
   this->createIndices();
 }
@@ -26,13 +50,13 @@ void Terrain::createVertices() {
   */
 
   this->vertices_ = std::vector<GLfloat>();
-  noise::module::Perlin noise;
 
   for (size_t z = 0; z < this->meshSize_; z++) {
     for (size_t x = 0; x < this->meshSize_; x++) {
       // use x and z (mapped to [-1, 1]) to create height generated with
-      // perlin noise.
-      GLfloat y = noise.GetValue(mapToInterval(x), 0.5f, mapToInterval(z));
+      // noise algorithm
+      GLfloat y = this->noise_->GetValue(mapToInterval(x), 0.5f,
+          mapToInterval(z));
 
       // coordinates
       this->vertices_.push_back(static_cast<GLfloat>(x));
