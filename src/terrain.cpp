@@ -2,28 +2,22 @@
 
 // TODO: create Vertice class and divide position and color
 // TODO: write tests
-// TODO: use smart pointer for noise_
 
 Terrain::Terrain(const GLuint meshSize) : meshSize_(meshSize) {
-  this->noise_ = nullptr;
-}
-
-Terrain::~Terrain() {
-  delete this->noise_;
 }
 
 void Terrain::setAlgorithm(int algorithm) {
   switch (algorithm) {
     case Constants::Perlin:
-      delete this->noise_;
-      this->noise_ = new noise::module::Perlin();
+      this->noise_ = std::unique_ptr<noise::module::Module>(
+          new noise::module::Perlin);
       break;
     case Constants::RidgedMulti:
-      delete this->noise_;
-      this->noise_ = new noise::module::RidgedMulti();
+      this->noise_ = std::unique_ptr<noise::module::Module>(
+          new noise::module::RidgedMulti);
+      break;
     default:
-      delete this->noise_;
-      this->noise_ = new noise::module::RidgedMulti();
+      break;
   }
 }
 

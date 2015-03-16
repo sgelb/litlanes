@@ -12,7 +12,6 @@
 class Terrain {
  public:
   explicit Terrain(GLuint meshSize = Constants::MeshWidth);
-  ~Terrain();
   std::vector<GLfloat> getVertices();
   std::vector<GLuint> getIndices();
   void setAlgorithm(int algorithm);
@@ -22,7 +21,7 @@ class Terrain {
   GLuint meshSize_;
   std::vector<GLfloat> vertices_;
   std::vector<GLuint> indices_;
-  noise::module::Module *noise_;
+  std::unique_ptr<noise::module::Module> noise_;
   void createVertices();
   void createIndices();
   GLfloat mapToInterval(const GLfloat &input);
