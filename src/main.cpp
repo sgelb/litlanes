@@ -2,7 +2,6 @@
 #include <cmath>
 #include <vector>
 
-#define GLEW_STATIC
 #include <GL/glew.h>
 
 #include <GLFW/glfw3.h>
@@ -17,10 +16,10 @@
 #include "camera.h"
 
 // Function prototypes
-void key_callback(GLFWwindow *window, int key, int scancode, int action,
+static void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mode);
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void do_movement();
 
 // Camera
@@ -76,7 +75,7 @@ int main() {
   ///////////////
 
   // Build and compile our shader program
-  Shader terraShader("shaders/default.vert", "shaders/default.frag");
+  Shader terraShader("shader/default.vert", "shader/default.frag");
 
   // Set up vertex data (and buffer(s)) and attribute pointers
   // Create vertices of mesh of 2^Constants::MeshWidth
