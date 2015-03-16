@@ -1,8 +1,12 @@
 ## Codedesign
 
+- gtest
+- strategy pattern for algorithm -> sourcemaking.com/design_patterns/Strategy
 - component pattern for terrain -> http://gameprogrammingpatterns.com/component.html
-  -> sourcemaking.com/design_patterns/Strategy
 - structure to implement and change terrain generating algorithms
-- gui
-- lod with quadtree
 
+
+## Features
+
+- gui -> https://github.com/ocornut/imgui
+- lod with quadtree
