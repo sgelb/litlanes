@@ -1,5 +1,6 @@
 # ignore binaries
 run_tests
-litlanes
+litlanes*
+build/*
 
 Makefile.dep
