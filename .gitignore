@@ -1,6 +1,6 @@
 # ignore binaries
-run_tests
+runTests
 litlanes*
-build/*
 
-Makefile.dep
+# ignore build directory
+build/*
