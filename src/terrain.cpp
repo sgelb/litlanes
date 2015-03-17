@@ -6,7 +6,7 @@
 Terrain::Terrain(const GLuint meshSize) : meshSize_(meshSize) {
 }
 
-void Terrain::setAlgorithm(int algorithm) {
+void Terrain::setAlgorithm(const int &algorithm) {
   switch (algorithm) {
     case Constants::Perlin:
       this->noise_ = std::unique_ptr<noise::module::Module>(
@@ -43,42 +43,48 @@ void Terrain::createVertices() {
 
   */
 
-  this->vertices_ = std::vector<GLfloat>();
+  // number of vertices: (3 vectors + 3 colors) * meshSize^2 vertices
+  this->vertices_ = std::vector<GLfloat>(6 * meshSize_ * meshSize_);
+  int idx = 0;
+  GLfloat y;
 
   for (size_t z = 0; z < this->meshSize_; z++) {
     for (size_t x = 0; x < this->meshSize_; x++) {
       // use x and z (mapped to [-1, 1]) to create height generated with
       // noise algorithm
-      GLfloat y = this->noise_->GetValue(mapToInterval(x), 0.5f,
-          mapToInterval(z));
+      y = this->noise_->GetValue(mapToInterval(x), 0.0f, mapToInterval(z));
 
       // coordinates
-      this->vertices_.push_back(static_cast<GLfloat>(x));
-      this->vertices_.push_back(
-          static_cast<GLfloat>(Constants::MaxMeshHeight * y));
-      this->vertices_.push_back(static_cast<GLfloat>(z));
+      this->vertices_[idx++] = static_cast<GLfloat>(x);
+      this->vertices_[idx++] =
+          static_cast<GLfloat>(Constants::MaxMeshHeight * y);
+      this->vertices_[idx++] = static_cast<GLfloat>(z);
 
       // color
-      std::vector<GLfloat> color = colorFromHeight(y);
-      this->vertices_.insert(this->vertices_.end(), color.begin(), color.end());
+      for (auto color : colorFromHeight(y)) {
+        this->vertices_[idx++] = color;
+      }
     }
   }
 }
 
 
 void Terrain::createIndices() {
-  this->indices_ = std::vector<GLuint>();
+  // number of indices: 2 triangles * 3 indices per tile * (meshSize-1)^2 tiles
+  this->indices_ = std::vector<GLuint>(6 * (meshSize_ - 1) * (meshSize_ - 1));
+  int idx = 0;
+
   for (size_t z = 0; z < this->meshSize_ - 1; z++) {
     for (size_t x = 0; x < this->meshSize_ - 1; x++) {
       /*
 
       +---x
       |
-      |   TL_TR  We split each subtile in two triangles and put their indices
+      |   tl_tr  We split each subtile in two triangles and put their indices
       y   |\  |  counterclockwise in indices-Array:
           | \ |  Left triangle:  TL->BL->BR
           |__\|  Right triangle: TL->BR->TR
-          BL BR
+          bl br
 
       */
 
@@ -88,20 +94,20 @@ void Terrain::createIndices() {
       GLuint br = bl + 1;
 
       // left triangle
-      this->indices_.push_back(tl);
-      this->indices_.push_back(bl);
-      this->indices_.push_back(br);
+      this->indices_[idx++] = tl;
+      this->indices_[idx++] = bl;
+      this->indices_[idx++] = br;
 
       // right triangle
-      this->indices_.push_back(tl);
-      this->indices_.push_back(br);
-      this->indices_.push_back(tr);
+      this->indices_[idx++] = tl;
+      this->indices_[idx++] = br;
+      this->indices_[idx++] = tr;
     }
   }
 }
 
 
-std::vector<GLfloat> Terrain::colorFromHeight(GLfloat height) {
+std::vector<GLfloat> Terrain::colorFromHeight(const GLfloat &height) {
   // simplified color model with 5 "height zones"
 
   if (height > 0.9) {

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <ctime>
 
 #include <GL/glew.h>
 
@@ -81,9 +82,16 @@ int main() {
   // Create vertices of mesh of 2^Constants::MeshWidth
   Terrain terrain;
   terrain.setAlgorithm(Constants::Perlin);
+  time_t t0 = clock();
   terrain.create();
+  time_t t1 = clock();
   auto vertices = terrain.getVertices();
+  time_t t2 = clock();
   auto indices = terrain.getIndices();
+  time_t t3 = clock();
+  std::cout << "Create : " << static_cast<float>(t1-t0)/CLOCKS_PER_SEC << std::endl;
+  std::cout << "Get V  : " << static_cast<float>(t2-t1)/CLOCKS_PER_SEC << std::endl;
+  std::cout << "Get I  : " << static_cast<float>(t3-t2)/CLOCKS_PER_SEC << std::endl;
 
   GLuint VAO;
   glGenVertexArrays(1, &VAO);
