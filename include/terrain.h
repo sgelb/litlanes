@@ -14,16 +14,16 @@ class Terrain {
   explicit Terrain(GLuint meshSize = Constants::MeshWidth);
   std::vector<GLfloat> getVertices();
   std::vector<GLuint> getIndices();
-  void setAlgorithm(int algorithm);
+  void setAlgorithm(const int &algorithm);
   void create();
 
  private:
   GLuint meshSize_;
+  std::unique_ptr<noise::module::Module> noise_;
   std::vector<GLfloat> vertices_;
   std::vector<GLuint> indices_;
-  std::unique_ptr<noise::module::Module> noise_;
   void createVertices();
   void createIndices();
   GLfloat mapToInterval(const GLfloat &input);
-  std::vector<GLfloat> colorFromHeight(GLfloat height);
+  std::vector<GLfloat> colorFromHeight(const GLfloat &height);
 };

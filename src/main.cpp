@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <ctime>
 
 #include <GL/glew.h>
 
@@ -15,23 +16,21 @@
 #include "constants.h"
 #include "camera.h"
 
-// Function prototypes
-static void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                  int mode);
-static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-void do_movement();
+// Functions
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                         int mode);
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void do_movement(const GLfloat &deltaTime);
 
 // Camera
 Camera camera(glm::vec3(Constants::MeshWidth / 2, 60.0f,
                         Constants::MeshWidth / 2));
+
+// Input keys
 bool keys[1024];
 
-// Deltatime
-GLfloat deltaTime = 0.0f; // Time between current frame and last frame
-GLfloat lastFrame = 0.0f; // Time of last frame
 
-// The MAIN function, from here we start the application and run the game loop
 int main() {
 
   // INITALIZE
@@ -79,8 +78,8 @@ int main() {
 
   // Set up vertex data (and buffer(s)) and attribute pointers
   // Create vertices of mesh of 2^Constants::MeshWidth
+  // Defaults to Perlin noise
   Terrain terrain;
-  terrain.setAlgorithm(Constants::Perlin);
   terrain.create();
   auto vertices = terrain.getVertices();
   auto indices = terrain.getIndices();
@@ -119,6 +118,10 @@ int main() {
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+  // Deltatime
+  GLfloat deltaTime = 0.0f; // Time between current frame and last frame
+  GLfloat lastFrame = 0.0f; // Time of last frame
+
   // Game loop
   while (!glfwWindowShouldClose(window)) {
     // TODO: refactor in processInput(), update(), render()
@@ -130,7 +133,7 @@ int main() {
     // Check if any events have been activiated (key pressed, mouse moved etc.)
     // and call corresponding response functions
     glfwPollEvents();
-    do_movement();
+    do_movement(deltaTime);
 
     // Render
     // Clear the colorbuffer
@@ -142,12 +145,12 @@ int main() {
 
     // Camera/View transformation
     glm::mat4 view;
-    view = ::camera.getViewMatrix();
+    view = camera.getViewMatrix();
 
     // Projection
     glm::mat4 projection;
     projection = glm::perspective(
-        ::camera.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
+        camera.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
                               static_cast<GLfloat>(Constants::WindowHeight),
         Constants::NearPlane, Constants::FarPlane);
 
@@ -200,25 +203,25 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
   }
 }
 
-void do_movement() {
+void do_movement(const GLfloat &deltaTime) {
   // Camera keyboard controls
   if (keys[GLFW_KEY_W]) {
-    ::camera.processKeyboard(Camera::FORWARD, deltaTime);
+    camera.processKeyboard(Camera::FORWARD, deltaTime);
   }
   if (keys[GLFW_KEY_S]) {
-    ::camera.processKeyboard(Camera::BACKWARD, deltaTime);
+    camera.processKeyboard(Camera::BACKWARD, deltaTime);
   }
   if (keys[GLFW_KEY_A]) {
-    ::camera.processKeyboard(Camera::LEFT, deltaTime);
+    camera.processKeyboard(Camera::LEFT, deltaTime);
   }
   if (keys[GLFW_KEY_D]) {
-    ::camera.processKeyboard(Camera::RIGHT, deltaTime);
+    camera.processKeyboard(Camera::RIGHT, deltaTime);
   }
   if (keys[GLFW_KEY_E]) {
-    ::camera.processKeyboard(Camera::UP, deltaTime);
+    camera.processKeyboard(Camera::UP, deltaTime);
   }
   if (keys[GLFW_KEY_Q]) {
-    ::camera.processKeyboard(Camera::DOWN, deltaTime);
+    camera.processKeyboard(Camera::DOWN, deltaTime);
   }
 }
 
@@ -239,9 +242,9 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   lastX = static_cast<GLfloat>(xpos);
   lastY = static_cast<GLfloat>(ypos);
 
-  ::camera.processMouseMovement(xoffset, yoffset);
+  camera.processMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-  ::camera.processMouseScroll(static_cast<GLfloat>(yoffset));
+  camera.processMouseScroll(static_cast<GLfloat>(yoffset));
 }
