@@ -16,23 +16,21 @@
 #include "constants.h"
 #include "camera.h"
 
-// Function prototypes
-static void key_callback(GLFWwindow *window, int key, int scancode, int action,
+// Functions
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
                          int mode);
-static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-void do_movement();
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void do_movement(const GLfloat &deltaTime);
 
 // Camera
 Camera camera(glm::vec3(Constants::MeshWidth / 2, 60.0f,
                         Constants::MeshWidth / 2));
+
+// Input keys
 bool keys[1024];
 
-// Deltatime
-GLfloat deltaTime = 0.0f; // Time between current frame and last frame
-GLfloat lastFrame = 0.0f; // Time of last frame
 
-// The MAIN function, from here we start the application and run the game loop
 int main() {
 
   // INITALIZE
@@ -120,6 +118,10 @@ int main() {
 
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+  // Deltatime
+  GLfloat deltaTime = 0.0f; // Time between current frame and last frame
+  GLfloat lastFrame = 0.0f; // Time of last frame
+
   // Game loop
   while (!glfwWindowShouldClose(window)) {
     // TODO: refactor in processInput(), update(), render()
@@ -131,7 +133,7 @@ int main() {
     // Check if any events have been activiated (key pressed, mouse moved etc.)
     // and call corresponding response functions
     glfwPollEvents();
-    do_movement();
+    do_movement(deltaTime);
 
     // Render
     // Clear the colorbuffer
@@ -201,7 +203,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
   }
 }
 
-void do_movement() {
+void do_movement(const GLfloat &deltaTime) {
   // Camera keyboard controls
   if (keys[GLFW_KEY_W]) {
     camera.processKeyboard(Camera::FORWARD, deltaTime);

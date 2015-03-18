@@ -56,6 +56,7 @@ void Terrain::createVertices() {
       // noise algorithm
       y = noise_->GetValue(mapToInterval(x), 0.0f, mapToInterval(z));
 
+
       // coordinates
       vertices_[idx++] = static_cast<GLfloat>(x);
       vertices_[idx++] = static_cast<GLfloat>(Constants::MaxMeshHeight * y);
