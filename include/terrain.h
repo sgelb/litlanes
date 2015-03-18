@@ -11,14 +11,14 @@
 
 class Terrain {
  public:
-  explicit Terrain(GLuint meshSize = Constants::MeshWidth);
+  explicit Terrain(GLuint tileWidth = Constants::TileWidth);
   std::vector<GLfloat> getVertices();
   std::vector<GLuint> getIndices();
   void setAlgorithm(const int &algorithm);
   void create();
 
  private:
-  GLuint meshSize_;
+  GLuint tileWidth_;
   std::unique_ptr<noise::module::Module> noise_;
   std::vector<GLfloat> vertices_;
   std::vector<GLuint> indices_;
