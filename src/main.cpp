@@ -18,7 +18,7 @@
 
 // Function prototypes
 static void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                  int mode);
+                         int mode);
 static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void do_movement();
@@ -80,18 +80,11 @@ int main() {
 
   // Set up vertex data (and buffer(s)) and attribute pointers
   // Create vertices of mesh of 2^Constants::MeshWidth
+  // Defaults to Perlin noise
   Terrain terrain;
-  terrain.setAlgorithm(Constants::Perlin);
-  time_t t0 = clock();
   terrain.create();
-  time_t t1 = clock();
   auto vertices = terrain.getVertices();
-  time_t t2 = clock();
   auto indices = terrain.getIndices();
-  time_t t3 = clock();
-  std::cout << "Create : " << static_cast<float>(t1-t0)/CLOCKS_PER_SEC << std::endl;
-  std::cout << "Get V  : " << static_cast<float>(t2-t1)/CLOCKS_PER_SEC << std::endl;
-  std::cout << "Get I  : " << static_cast<float>(t3-t2)/CLOCKS_PER_SEC << std::endl;
 
   GLuint VAO;
   glGenVertexArrays(1, &VAO);
@@ -150,12 +143,12 @@ int main() {
 
     // Camera/View transformation
     glm::mat4 view;
-    view = ::camera.getViewMatrix();
+    view = camera.getViewMatrix();
 
     // Projection
     glm::mat4 projection;
     projection = glm::perspective(
-        ::camera.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
+        camera.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
                               static_cast<GLfloat>(Constants::WindowHeight),
         Constants::NearPlane, Constants::FarPlane);
 
@@ -211,22 +204,22 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
 void do_movement() {
   // Camera keyboard controls
   if (keys[GLFW_KEY_W]) {
-    ::camera.processKeyboard(Camera::FORWARD, deltaTime);
+    camera.processKeyboard(Camera::FORWARD, deltaTime);
   }
   if (keys[GLFW_KEY_S]) {
-    ::camera.processKeyboard(Camera::BACKWARD, deltaTime);
+    camera.processKeyboard(Camera::BACKWARD, deltaTime);
   }
   if (keys[GLFW_KEY_A]) {
-    ::camera.processKeyboard(Camera::LEFT, deltaTime);
+    camera.processKeyboard(Camera::LEFT, deltaTime);
   }
   if (keys[GLFW_KEY_D]) {
-    ::camera.processKeyboard(Camera::RIGHT, deltaTime);
+    camera.processKeyboard(Camera::RIGHT, deltaTime);
   }
   if (keys[GLFW_KEY_E]) {
-    ::camera.processKeyboard(Camera::UP, deltaTime);
+    camera.processKeyboard(Camera::UP, deltaTime);
   }
   if (keys[GLFW_KEY_Q]) {
-    ::camera.processKeyboard(Camera::DOWN, deltaTime);
+    camera.processKeyboard(Camera::DOWN, deltaTime);
   }
 }
 
@@ -247,9 +240,9 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   lastX = static_cast<GLfloat>(xpos);
   lastY = static_cast<GLfloat>(ypos);
 
-  ::camera.processMouseMovement(xoffset, yoffset);
+  camera.processMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-  ::camera.processMouseScroll(static_cast<GLfloat>(yoffset));
+  camera.processMouseScroll(static_cast<GLfloat>(yoffset));
 }
