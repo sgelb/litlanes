@@ -69,6 +69,7 @@ int main() {
   glViewport(0, 0, Constants::WindowWidth, Constants::WindowHeight);
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 
   // CREATE STUFF
   ///////////////
@@ -121,14 +122,28 @@ int main() {
   // Deltatime
   GLfloat deltaTime = 0.0f; // Time between current frame and last frame
   GLfloat lastFrame = 0.0f; // Time of last frame
+  GLfloat lastTime =  0.0f; // Time since last fps-"second"
+  int frameCount = 0;
 
   // Game loop
   while (!glfwWindowShouldClose(window)) {
     // TODO: refactor in processInput(), update(), render()
+
     // Calculate deltatime of current frame
-    GLfloat currentFrame = glfwGetTime();
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
+    GLfloat currentTime = glfwGetTime();
+    deltaTime = currentTime - lastFrame;
+    lastFrame = currentTime;
+
+    // framerate count
+    frameCount++;
+    lastTime += deltaTime;
+
+    if (lastTime >= 1.0f) {
+      std::cout << frameCount << " fps, " << (1000.0f / frameCount)
+                << "ms/frame" << std::endl;
+      frameCount = 0;
+      lastTime = 0.0f;
+    }
 
     // Check if any events have been activiated (key pressed, mouse moved etc.)
     // and call corresponding response functions
