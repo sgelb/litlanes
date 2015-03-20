@@ -6,5 +6,5 @@
 
 ## Features
 
+- lod with quadtree: ulrich-paper & http://chrisbrough.com
 - gui -> https://github.com/ocornut/imgui
-- lod with quadtree
