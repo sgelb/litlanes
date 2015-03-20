@@ -3,8 +3,8 @@
 // TODO: create Vertice class and divide position and color
 // TODO: write tests
 
-Terrain::Terrain(const GLuint meshSize)
-    : meshSize_(meshSize),
+Terrain::Terrain(const GLuint tileWidth)
+    : tileWidth_(tileWidth),
       noise_(
           std::unique_ptr<noise::module::Module>(new noise::module::Perlin)) {
 }
@@ -45,13 +45,13 @@ void Terrain::createVertices() {
 
   */
 
-  // number of vertices: (3 vectors + 3 colors) * meshSize^2 vertices
-  vertices_ = std::vector<GLfloat>(6 * meshSize_ * meshSize_);
+  // number of vertices: (3 vectors + 3 colors) * tileWidth^2 vertices
+  vertices_ = std::vector<GLfloat>(6 * tileWidth_ * tileWidth_);
   int idx = 0;
   GLfloat y;
 
-  for (size_t z = 0; z < meshSize_; z++) {
-    for (size_t x = 0; x < meshSize_; x++) {
+  for (size_t z = 0; z < tileWidth_; z++) {
+    for (size_t x = 0; x < tileWidth_; x++) {
       // use x and z (mapped to [-1, 1]) to create height generated with
       // noise algorithm
       y = noise_->GetValue(mapToInterval(x), 0.0f, mapToInterval(z));
@@ -84,15 +84,15 @@ void Terrain::createIndices() {
 
   */
 
-  // number of indices: 2 triangles * 3 indices per tile * (meshSize-1)^2 tiles
-  indices_ = std::vector<GLuint>(6 * (meshSize_ - 1) * (meshSize_ - 1));
+  // number of indices: 2 triangles * 3 indices per tile * (tileWidth-1)^2 tiles
+  indices_ = std::vector<GLuint>(6 * (tileWidth_ - 1) * (tileWidth_ - 1));
   int idx = 0;
 
-  for (size_t z = 0; z < meshSize_ - 1; z++) {
-    for (size_t x = 0; x < meshSize_ - 1; x++) {
-      GLuint tl = x + meshSize_ * z;
+  for (size_t z = 0; z < tileWidth_ - 1; z++) {
+    for (size_t x = 0; x < tileWidth_ - 1; x++) {
+      GLuint tl = x + tileWidth_ * z;
       GLuint tr = tl + 1;
-      GLuint bl = tl + meshSize_;
+      GLuint bl = tl + tileWidth_;
       GLuint br = bl + 1;
 
       // left triangle
@@ -145,6 +145,6 @@ std::vector<GLfloat> Terrain::getVertices() {
 }
 
 GLfloat Terrain::mapToInterval(const GLfloat &input) {
-  // map input from [0, Constants::MeshWidth] to [-1, 1]
-  return 2 * (input / Constants::MeshWidth) - 1;
+  // map input from [0, Constants::TileWidth] to [-1, 1]
+  return 2 * (input / Constants::TileWidth) - 1;
 }

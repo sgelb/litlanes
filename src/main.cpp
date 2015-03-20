@@ -24,8 +24,8 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void do_movement(const GLfloat &deltaTime);
 
 // Camera
-Camera camera(glm::vec3(Constants::MeshWidth / 2, 60.0f,
-                        Constants::MeshWidth / 2));
+Camera camera(glm::vec3(Constants::TileWidth / 2, 60.0f,
+                        Constants::TileWidth / 2));
 
 // Input keys
 bool keys[1024];
@@ -78,7 +78,7 @@ int main() {
   Shader terraShader("shader/default.vert", "shader/default.frag");
 
   // Set up vertex data (and buffer(s)) and attribute pointers
-  // Create vertices of mesh of 2^Constants::MeshWidth
+  // Create vertices of mesh of 2^Constants::TileWidth
   // Defaults to Perlin noise
   Terrain terrain;
   terrain.create();
