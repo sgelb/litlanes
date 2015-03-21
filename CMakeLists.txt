@@ -40,6 +40,7 @@ add_definitions(
 set(SOURCES 
   src/camera.cpp
   src/main.cpp
+  src/quadtree.cpp
   src/shader.cpp
   src/terrain.cpp
   )
@@ -47,6 +48,7 @@ set(SOURCES
 set(HEADER
   include/camera.h
   include/constants.h
+  include/quadtree.h
   include/shader.h
   include/terrain.h
   )
@@ -67,14 +69,18 @@ SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$")
 if (BUILD_TESTS)
 
   set(TESTS
-    test/test.cpp
+    test/testQuadtree.cpp
+    test/testTerrain.cpp
     )
 
   set(TEST_SOURCES
+    src/quadtree.cpp
     src/terrain.cpp
     )
 
   set(TEST_HEADER
+    include/constants.h
+    include/quadtree.h
     include/terrain.h
     )
 

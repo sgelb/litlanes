@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 namespace Constants {
 // WINDOW
 
@@ -26,10 +28,15 @@ static const GLfloat Sensitivty = 0.5f;
 static const int Perlin = 1;
 static const int RidgedMulti = 2;
 
-// default width of terrain tile
+// default width of terrain tile. Must be a factor of 2
 static const GLuint TileWidth = 256;
 
 // max height of terrain mesh
 static const GLfloat MaxMeshHeight = 50.0f;
+
+// LEVEL OF DETAIL
+
+static const int MaximumLoD = 2;  // == LodDistance.length()
+static const std::vector<int> LodDistances = {800, 400, 100};
 
 } // namespace Constants
