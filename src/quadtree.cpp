@@ -2,13 +2,10 @@
 
 Quadtree::Quadtree(const int &level, const int &startpoint)
     : level_(level), startpoint_(startpoint) {
-  // TODO: better documentation
-  // offset of vertices in this level. highest level has maximum
-  // resolution aka offset = 1
-  // level 0:  offset = 2^MaxLod = 4
-  // level 1:  offset = 2^MaxLod = 2
-  // level 2:  offset = 2^MaxLod = 1
-  int offset = pow(2, Constants::MaximumLoD - level_);
+
+  // offset of vertices in this level. root is level 0 and
+  // highest level has offset of 1
+  int offset = pow(2, Constants::MaximumLod - level_);
 
   /*
 
@@ -26,7 +23,7 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
 
   int tl = startpoint;
   int tr = startpoint + offset;
-  int bl = tl + Constants::TileWidth * offset;
+  int bl = tl + (Constants::TileWidth + 1) * offset;
   int br = bl + offset;
 
   // left triangle
@@ -40,13 +37,13 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
   indices_[5] = tr;
 
   // add children
-  if (level_ < Constants::MaximumLoD) {
+  if (level_ < Constants::MaximumLod) {
     this->isLeaf_ = false;
 
     // calculate starting points
     int tlChild = tl;
-    int trChild = tlChild + offset / 2;
-    int blChild = tlChild + Constants::TileWidth * offset / 2;
+    int trChild = tl + offset / 2;
+    int blChild = tl + (Constants::TileWidth + 1) * offset / 2;
     int brChild = blChild + offset / 2;
 
     // add children counterclockwise
@@ -63,10 +60,20 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
   }
 }
 
-std::vector<GLuint> Quadtree::getIndices() {
-  return indices_;
-}
-
 bool Quadtree::isLeaf() {
   return isLeaf_;
+}
+
+std::vector<GLuint> Quadtree::getIndicesOfLevel(const int &lod) {
+  if (isLeaf_ || level_ == lod) {
+    return indices_;
+  }
+
+  std::vector<GLuint> indices;
+  for (auto child : children_) {
+    auto i = child->getIndicesOfLevel(lod);
+    indices.insert(indices.end(), i.begin(), i.end());
+  }
+
+  return indices;
 }

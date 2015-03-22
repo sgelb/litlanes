@@ -3,23 +3,26 @@
 #include <vector>
 
 TEST(TerrainTest, verticesCount) {
-  Terrain terrain(4);
+  Terrain terrain(Constants::TileWidth);
   terrain.setAlgorithm(Constants::Perlin);
   terrain.create();
-  int expected = 6 * 4 * 4; // 3 vectors + 3 colors * 4^2 vertices
-  ASSERT_EQ(expected, terrain.getVertices().size());
+  int expected = 6 * (Constants::TileWidth + 1) * (Constants::TileWidth + 1);
+  int result = terrain.getVertices().size();
+  ASSERT_EQ(expected, result);
 }
 
 TEST(TerrainTest, indicesCount) {
-  Terrain terrain(4);
+  Terrain terrain(Constants::TileWidth);
   terrain.setAlgorithm(Constants::Perlin);
   terrain.create();
-  int expected = 6 * 3 * 3; // 2 triangles * 3 indices per tile * (4-1)^2 tiles
-  ASSERT_EQ(expected, terrain.getIndices().size());
+  // 2 triangles * 3 indices per tile * TileWidth^2 tiles
+  int expected = 6 * Constants::TileWidth * Constants::TileWidth;
+  int result = terrain.getIndices().size();
+  ASSERT_EQ(expected, result);
 }
 
 TEST(TerrainTest, indicesPosition) {
-  Terrain terrain(3);
+  Terrain terrain(2);
   terrain.setAlgorithm(Constants::Perlin);
   terrain.create();
   std::vector<GLuint> expected = {0, 3, 4, 0, 4, 1, 1, 4, 5, 1, 5, 2,

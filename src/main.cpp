@@ -15,10 +15,11 @@
 #include "terrain.h"
 #include "constants.h"
 #include "camera.h"
+#include "quadtree.h"
 
 // Functions
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                         int mode);
+                  int mode);
 void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void do_movement(const GLfloat &deltaTime);
@@ -29,7 +30,6 @@ Camera camera(glm::vec3(Constants::TileWidth / 2, 60.0f,
 
 // Input keys
 bool keys[1024];
-
 
 int main() {
 
@@ -78,12 +78,12 @@ int main() {
   Shader terraShader("shader/default.vert", "shader/default.frag");
 
   // Set up vertex data (and buffer(s)) and attribute pointers
-  // Create vertices of mesh of 2^Constants::TileWidth
-  // Defaults to Perlin noise
   Terrain terrain;
   terrain.create();
   auto vertices = terrain.getVertices();
-  auto indices = terrain.getIndices();
+
+  Quadtree quadtree;
+  auto indices = quadtree.getIndicesOfLevel(Constants::MaximumLod);
 
   GLuint VAO;
   glGenVertexArrays(1, &VAO);
@@ -122,7 +122,7 @@ int main() {
   // Deltatime
   GLfloat deltaTime = 0.0f; // Time between current frame and last frame
   GLfloat lastFrame = 0.0f; // Time of last frame
-  GLfloat lastTime =  0.0f; // Time since last fps-"second"
+  GLfloat lastTime = 0.0f;  // Time since last fps-"second"
   int frameCount = 0;
 
   // Game loop

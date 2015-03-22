@@ -3,48 +3,51 @@
 #include <constants.h>
 #include <vector>
 
-TEST(QuadtreeTest, verticesCountOfLowestLod) {
+TEST(QuadtreeTest, indicesCountOfLowestLod) {
   Quadtree quadtree(0, 0);
-  int count = quadtree.getIndices().size();
-  EXPECT_EQ(6, count) << "Indices count differs " << count;
+  int expected = 6;
+  int result = quadtree.getIndicesOfLevel(0).size();
+  EXPECT_EQ(expected, result) << "Indices count differ: " << result;
 }
+
+TEST(QuadtreeTest, indicesCountOfMaximumLod) {
+  Quadtree quadtree(0, 0);
+  int expected = 6*Constants::TileWidth*Constants::TileWidth;
+  int result = quadtree.getIndicesOfLevel(Constants::MaximumLod).size();
+  EXPECT_EQ(expected, result) << "Indices count differ: " << result;
+}
+
+TEST(QuadtreeTest, indicesPositionOfMinimumLod) {
+  Quadtree quadtree(0, 0);
+  unsigned int w = Constants::TileWidth;
+  std::vector<GLuint> expected = {0, w*w, w*w + w, 0, w*w + w, w};
+  std::vector<GLuint> indices = quadtree.getIndicesOfLevel(0);
+  for (size_t i = 0; i < expected.size(); i++) {
+    EXPECT_EQ(expected[i], indices[i]) << "Vectors differ at index " << i;
+  }
+}
+
+TEST(QuadtreeTest, indicesPositionOfLod1) {
+  Quadtree quadtree(0, 0);
+  unsigned int w = Constants::TileWidth;
+  std::vector<GLuint> expected = {
+    0, w*w/2, w*w/2 + w/2, 0, w*w/2 + w/2, w/2,  // nw
+    w*w/2, w*w, w*w + w/2, w*w/2, w*w + w/2, w*w/2 + w/2,  // sw
+    w*w/2 + w/2, w*w + w/2, w*w + w, w*w/2 + w/2, w*w + w, w*w/2 + w,  // se
+    w/2, w*w/2 + w/2, w*w/2 + w, w/2, w*w/2 + w, w};  // nw
+  std::vector<GLuint> indices = quadtree.getIndicesOfLevel(1);
+  for (size_t i = 0; i < expected.size(); i++) {
+    EXPECT_EQ(expected[i], indices[i]) << "Vectors differ at index " << i;
+  }
+}
+
 
 TEST(QuadtreeTest, lowestLodisNoLeaf) {
   Quadtree quadtree(0, 0);
   EXPECT_FALSE(quadtree.isLeaf());
 }
 
-TEST(QuadtreeTest, highestLodisLeaf) {
-  Quadtree quadtree(Constants::MaximumLoD, 0);
+TEST(QuadtreeTest, maximumLodIsLeaf) {
+  Quadtree quadtree(Constants::MaximumLod, 0);
   EXPECT_TRUE(quadtree.isLeaf());
-}
-
-TEST(QuadtreeTest, verticesPositionWithMaximumLoD) {
-  Quadtree quadtree(Constants::MaximumLoD, 0);
-  unsigned int w = Constants::TileWidth;
-  std::vector<GLuint> expected = {0, w, w + 1, 0, w + 1, 1};
-  std::vector<GLuint> indices = quadtree.getIndices();
-  for (size_t i = 0; i < expected.size(); i++) {
-    EXPECT_EQ(expected[i], indices[i]) << "Vectors differ at index " << i;
-  }
-}
-
-TEST(QuadtreeTest, verticesPositionWithLoD1) {
-  Quadtree quadtree(1, 0);
-  unsigned int w = Constants::TileWidth * 2;
-  std::vector<GLuint> expected = {0, w, w + 2, 0, w + 2, 2};
-  std::vector<GLuint> indices = quadtree.getIndices();
-  for (size_t i = 0; i < expected.size(); i++) {
-    EXPECT_EQ(expected[i], indices[i]) << "Vectors differ at index " << i;
-  }
-}
-
-TEST(QuadtreeTest, verticesPositionWithLoD0) {
-  Quadtree quadtree(0, 0);
-  unsigned int w = Constants::TileWidth * 4;
-  std::vector<GLuint> expected = {0, w, w + 4, 0, w + 4, 4};
-  std::vector<GLuint> indices = quadtree.getIndices();
-  for (size_t i = 0; i < expected.size(); i++) {
-    EXPECT_EQ(expected[i], indices[i]) << "Vectors differ at index " << i;
-  }
 }
