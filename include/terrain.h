@@ -9,6 +9,7 @@
 
 #include "constants.h"
 
+
 class Terrain {
  public:
   explicit Terrain(GLuint tileWidth = Constants::TileWidth);

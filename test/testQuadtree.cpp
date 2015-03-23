@@ -4,23 +4,23 @@
 #include <vector>
 
 TEST(QuadtreeTest, indicesCountOfLowestLod) {
-  Quadtree quadtree(0, 0);
+  Quadtree quadtree;
   int expected = 6;
   int result = quadtree.getIndicesOfLevel(0).size();
   EXPECT_EQ(expected, result) << "Indices count differ: " << result;
 }
 
 TEST(QuadtreeTest, indicesCountOfMaximumLod) {
-  Quadtree quadtree(0, 0);
+  Quadtree quadtree;
   int expected = 6*Constants::TileWidth*Constants::TileWidth;
   int result = quadtree.getIndicesOfLevel(Constants::MaximumLod).size();
   EXPECT_EQ(expected, result) << "Indices count differ: " << result;
 }
 
 TEST(QuadtreeTest, indicesPositionOfMinimumLod) {
-  Quadtree quadtree(0, 0);
+  Quadtree quadtree;
   unsigned int w = Constants::TileWidth;
-  std::vector<GLuint> expected = {0, w*w, w*w + w, 0, w*w + w, w};
+  std::vector<GLuint> expected = {0, w*(w+1), w*(w+1) + w, 0, w*(w+1) + w, w};
   std::vector<GLuint> indices = quadtree.getIndicesOfLevel(0);
   for (size_t i = 0; i < expected.size(); i++) {
     EXPECT_EQ(expected[i], indices[i]) << "Vectors differ at index " << i;
@@ -28,13 +28,19 @@ TEST(QuadtreeTest, indicesPositionOfMinimumLod) {
 }
 
 TEST(QuadtreeTest, indicesPositionOfLod1) {
-  Quadtree quadtree(0, 0);
+  Quadtree quadtree;
   unsigned int w = Constants::TileWidth;
   std::vector<GLuint> expected = {
-    0, w*w/2, w*w/2 + w/2, 0, w*w/2 + w/2, w/2,  // nw
-    w*w/2, w*w, w*w + w/2, w*w/2, w*w + w/2, w*w/2 + w/2,  // sw
-    w*w/2 + w/2, w*w + w/2, w*w + w, w*w/2 + w/2, w*w + w, w*w/2 + w,  // se
-    w/2, w*w/2 + w/2, w*w/2 + w, w/2, w*w/2 + w, w};  // nw
+    // nw
+    0, w*(w+1)/2, w*(w+1)/2 + w/2, 0, w*(w+1)/2 + w/2, w/2,
+    // sw
+    w*(w+1)/2, w*(w+1), w*(w+1) + w/2, w*(w+1)/2, w*(w+1) + w/2,
+    w*(w+1)/2 + w/2,
+    // se
+    w*(w+1)/2 + w/2, w*(w+1) + w/2, w*(w+1) + w, w*(w+1)/2 + w/2, w*(w+1) + w,
+    w*(w+1)/2 + w,
+    // nw
+    w/2, w*(w+1)/2 + w/2, w*(w+1)/2 + w, w/2, w*(w+1)/2 + w, w};
   std::vector<GLuint> indices = quadtree.getIndicesOfLevel(1);
   for (size_t i = 0; i < expected.size(); i++) {
     EXPECT_EQ(expected[i], indices[i]) << "Vectors differ at index " << i;
