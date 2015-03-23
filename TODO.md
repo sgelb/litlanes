@@ -8,3 +8,6 @@
 
 - lod with quadtree: ulrich-paper & http://chrisbrough.com
 - gui -> https://github.com/ocornut/imgui
+- (very) simple texture
+- light
+- shadows
