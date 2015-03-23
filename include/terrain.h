@@ -19,8 +19,9 @@ class Terrain {
   void create();
 
  private:
+  using modulePtr = std::unique_ptr<noise::module::Module>;
   GLuint tileWidth_;
-  std::unique_ptr<noise::module::Module> noise_;
+  modulePtr noise_;
   std::vector<GLfloat> vertices_;
   std::vector<GLuint> indices_;
   void createVertices();

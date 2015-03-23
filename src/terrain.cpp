@@ -1,24 +1,21 @@
 #include "terrain.h"
 
-// TODO: create Vertice class and divide position and color
-
 Terrain::Terrain(const GLuint tileWidth)
     : tileWidth_(tileWidth),
-      noise_(
-          std::unique_ptr<noise::module::Module>(new noise::module::Perlin)) {
+      noise_(modulePtr(new noise::module::Perlin)) {
 }
 
 void Terrain::setAlgorithm(const int &algorithm) {
   switch (algorithm) {
   case Constants::Perlin:
-    noise_ = std::unique_ptr<noise::module::Module>(new noise::module::Perlin);
+    noise_ = modulePtr(new noise::module::Perlin);
     break;
   case Constants::RidgedMulti:
     noise_ =
-        std::unique_ptr<noise::module::Module>(new noise::module::RidgedMulti);
+        modulePtr(new noise::module::RidgedMulti);
     break;
   default:
-    noise_ = std::unique_ptr<noise::module::Module>(new noise::module::Perlin);
+    noise_ = modulePtr(new noise::module::Perlin);
   }
 }
 
