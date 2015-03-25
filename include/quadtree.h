@@ -7,11 +7,12 @@
 #include <cmath>
 #include <iostream>
 
+#include "boundingbox.h"
 #include "constants.h"
 
 class Quadtree {
  public:
-  Quadtree(const int &level = 0, const int &startpoint = 0);
+  explicit Quadtree(const int &level = 0, const int &startpoint = 0);
   bool isLeaf();
   std::vector<GLuint> getIndicesOfLevel(const int &lod);
 
@@ -20,6 +21,7 @@ class Quadtree {
   int level_;
   int startpoint_;
   bool isLeaf_;
+  std::unique_ptr<BoundingBox> boundingBox_;
   std::vector<GLuint> indices_;
 
   // 4 children: nw, sw, se, ne
