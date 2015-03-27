@@ -1,81 +1,20 @@
-#include <iostream>
-#include <cmath>
-#include <vector>
-#include <ctime>
+#include "game.h"
 
-#include <GL/glew.h>
 
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "shader.h"
-#include "terrain.h"
-#include "constants.h"
-#include "camera.h"
-#include "quadtree.h"
-
-// Functions
-void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                  int mode);
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-void do_movement(const GLfloat &deltaTime);
-
-// Camera
-Camera camera(glm::vec3(Constants::TileWidth / 2, 60.0f,
+Game::Game() : keys_{false} {
+  camera_ = Camera(glm::vec3(Constants::TileWidth / 2, 60.0f,
                         Constants::TileWidth / 2));
+}
 
-// Input keys
-bool keys[1024];
+int Game::run() {
 
-int main() {
-
-  // INITALIZE
-  ////////////
-  // TODO: create Init-methods
-
-  // Init GLFW
-  glfwInit();
-  // Set all the required options for GLFW
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-  // Create a GLFWwindow object that we can use for GLFW's functions
-  GLFWwindow *window =
-      glfwCreateWindow(Constants::WindowWidth, Constants::WindowHeight,
-                       "litlanesfoss", nullptr, nullptr);
-  glfwMakeContextCurrent(window);
-
-  // Set the required callback functions
-  glfwSetKeyCallback(window, key_callback);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  glfwSetScrollCallback(window, scroll_callback);
-
-  // GLFW Options
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-  // Set this to true so GLEW knows to use a modern approach to retrieving
-  // function pointers and extensions
-  glewExperimental = GL_TRUE;
-  // Initialize GLEW to setup the OpenGL Function pointers
-  glewInit();
-
-  // Define the viewport dimensions
-  glViewport(0, 0, Constants::WindowWidth, Constants::WindowHeight);
-
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
+  // Initalize
+  initializeGlfw();
+  initializeGlew();
+  initializeGl();
 
   // CREATE STUFF
   ///////////////
-
-  // Build and compile our shader program
-  Shader terraShader("shader/default.vert", "shader/default.frag");
 
   // Set up vertex data (and buffer(s)) and attribute pointers
   Terrain terrain;
@@ -84,6 +23,10 @@ int main() {
 
   Quadtree quadtree;
   auto indices = quadtree.getIndicesOfLevel(Constants::MaximumLod);
+
+// ------>
+  // Build and compile our shader program
+  Shader terraShader("shader/default.vert", "shader/default.frag");
 
   GLuint VAO;
   glGenVertexArrays(1, &VAO);
@@ -116,40 +59,32 @@ int main() {
 
   // Unbind buffers/arrays to prevent strange bugs
   glBindVertexArray(0);
+// <------
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   // Deltatime
-  GLfloat deltaTime = 0.0f; // Time between current frame and last frame
-  GLfloat lastFrame = 0.0f; // Time of last frame
-  GLfloat lastTime = 0.0f;  // Time since last fps-"second"
-  int frameCount = 0;
+  deltaTime_ = 0.0f; // Time between current frame and last frame
+  lastFrame_ = 0.0f; // Time of last frame
+  lastTime_ = 0.0f;  // Time since last fps-"second"
+  frameCount_ = 0;
 
   // Game loop
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(window_)) {
     // TODO: refactor in processInput(), update(), render()
 
     // Calculate deltatime of current frame
     GLfloat currentTime = glfwGetTime();
-    deltaTime = currentTime - lastFrame;
-    lastFrame = currentTime;
+    deltaTime_ = currentTime - lastFrame_;
+    lastFrame_ = currentTime;
 
-    // framerate count
-    frameCount++;
-    lastTime += deltaTime;
+    // Print fps on stdout
+    printFps();
 
-    if (lastTime >= 1.0f) {
-      std::cout << frameCount << " fps, " << (1000.0f / frameCount)
-                << "ms/frame" << std::endl;
-      frameCount = 0;
-      lastTime = 0.0f;
-    }
-
-    // Check if any events have been activiated (key pressed, mouse moved etc.)
-    // and call corresponding response functions
+    // Check for events and trigger callbacks
     glfwPollEvents();
-    do_movement(deltaTime);
+    do_movement(deltaTime_);
 
+    // TODO: move to terrain-update/render-method
     // Render
     // Clear the colorbuffer
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -160,12 +95,12 @@ int main() {
 
     // Camera/View transformation
     glm::mat4 view;
-    view = camera.getViewMatrix();
+    view = camera_.getViewMatrix();
 
     // Projection
     glm::mat4 projection;
     projection = glm::perspective(
-        camera.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
+        camera_.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
                               static_cast<GLfloat>(Constants::WindowHeight),
         Constants::NearPlane, Constants::FarPlane);
 
@@ -192,58 +127,80 @@ int main() {
     glBindVertexArray(0);
 
     // Swap the screen buffers
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(window_);
   }
 
+  // TODO: refactor in cleanup-method
   // Properly de-allocate all resources once they've outlived their purpose
   glDeleteVertexArrays(1, &VAO);
   glDeleteBuffers(1, &VBO);
   // Terminate GLFW, clearing any resources allocated by GLFW.
-  glfwDestroyWindow(window);
+  glfwDestroyWindow(window_);
   glfwTerminate();
   return 0;
 }
 
+void Game::printFps() {
+  // framerate count
+  frameCount_++;
+  lastTime_ += deltaTime_;
+
+  if (lastTime_ >= 1.0f) {
+    std::cout << frameCount_ << " fps, " << (1000.0f / frameCount_)
+      << "ms/frame" << std::endl;
+    frameCount_ = 0;
+    lastTime_ = 0.0f;
+  }
+}
+
+void Game::do_movement(const GLfloat &deltaTime) {
+  // Camera keyboard controls
+  if (keys_[GLFW_KEY_W]) {
+    camera_.processKeyboard(Camera::FORWARD, deltaTime);
+  }
+  if (keys_[GLFW_KEY_S]) {
+    camera_.processKeyboard(Camera::BACKWARD, deltaTime);
+  }
+  if (keys_[GLFW_KEY_A]) {
+    camera_.processKeyboard(Camera::LEFT, deltaTime);
+  }
+  if (keys_[GLFW_KEY_D]) {
+    camera_.processKeyboard(Camera::RIGHT, deltaTime);
+  }
+  if (keys_[GLFW_KEY_E]) {
+    camera_.processKeyboard(Camera::UP, deltaTime);
+  }
+  if (keys_[GLFW_KEY_Q]) {
+    camera_.processKeyboard(Camera::DOWN, deltaTime);
+  }
+}
+
+
 // Is called whenever a key is pressed/released via GLFW
-void key_callback(GLFWwindow *window, int key, int scancode, int action,
+void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mode) {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+
+  Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
+
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
+  }
+
   if (key >= 0 && key < 1024) {
     if (action == GLFW_PRESS) {
-      keys[key] = true;
+      game->keys_[key] = true;
     } else if (action == GLFW_RELEASE) {
-      keys[key] = false;
+      game->keys_[key] = false;
     }
   }
 }
 
-void do_movement(const GLfloat &deltaTime) {
-  // Camera keyboard controls
-  if (keys[GLFW_KEY_W]) {
-    camera.processKeyboard(Camera::FORWARD, deltaTime);
-  }
-  if (keys[GLFW_KEY_S]) {
-    camera.processKeyboard(Camera::BACKWARD, deltaTime);
-  }
-  if (keys[GLFW_KEY_A]) {
-    camera.processKeyboard(Camera::LEFT, deltaTime);
-  }
-  if (keys[GLFW_KEY_D]) {
-    camera.processKeyboard(Camera::RIGHT, deltaTime);
-  }
-  if (keys[GLFW_KEY_E]) {
-    camera.processKeyboard(Camera::UP, deltaTime);
-  }
-  if (keys[GLFW_KEY_Q]) {
-    camera.processKeyboard(Camera::DOWN, deltaTime);
-  }
-}
-
-void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   static bool firstMouse = true;
   static GLfloat lastX;
   static GLfloat lastY;
+
+  Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
 
   if (firstMouse) {
     lastX = static_cast<GLfloat>(xpos);
@@ -257,9 +214,45 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   lastX = static_cast<GLfloat>(xpos);
   lastY = static_cast<GLfloat>(ypos);
 
-  camera.processMouseMovement(xoffset, yoffset);
+  game->camera_.processMouseMovement(xoffset, yoffset);
 }
 
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-  camera.processMouseScroll(static_cast<GLfloat>(yoffset));
+void Game::initializeGlfw() {
+  // Init GLFW
+  glfwInit();
+  // Set all the required options for GLFW
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+  // Create a GLFWwindow object that we can use for GLFW's functions
+  window_ = glfwCreateWindow(Constants::WindowWidth, Constants::WindowHeight,
+      "litlanesfoss", nullptr, nullptr);
+  glfwMakeContextCurrent(window_);
+
+  // Set the required callback functions
+  glfwSetWindowUserPointer(window_, this);
+  glfwSetKeyCallback(window_, Game::key_callback);
+  glfwSetCursorPosCallback(window_, Game::mouse_callback);
+
+  // GLFW Options
+  glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+}
+
+void Game::initializeGlew() {
+  // Set this to true so GLEW knows to use a modern approach to retrieving
+  // function pointers and extensions
+  glewExperimental = GL_TRUE;
+  // Initialize GLEW to setup the OpenGL Function pointers
+  glewInit();
+}
+
+void Game::initializeGl() {
+  // Define the viewport dimensions
+  glViewport(0, 0, Constants::WindowWidth, Constants::WindowHeight);
+
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }

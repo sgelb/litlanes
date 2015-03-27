@@ -28,6 +28,10 @@ class Game {
     Camera camera_;
     GLFWwindow *window_;
     bool keys_[1024];
+    GLfloat deltaTime_;
+    GLfloat lastFrame_;
+    GLfloat lastTime_;
+    int frameCount_;
 
     void initializeGlfw();
     void initializeGlew();
