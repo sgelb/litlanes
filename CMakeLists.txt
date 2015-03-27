@@ -40,6 +40,7 @@ add_definitions(
 set(SOURCES 
   src/boundingbox.cpp
   src/camera.cpp
+  src/game.cpp
   src/main.cpp
   src/quadtree.cpp
   src/shader.cpp
@@ -50,6 +51,7 @@ set(HEADER
   include/boundingbox.h
   include/camera.h
   include/constants.h
+  include/game.h
   include/quadtree.h
   include/shader.h
   include/terrain.h
