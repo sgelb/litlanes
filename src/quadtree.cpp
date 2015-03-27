@@ -72,6 +72,7 @@ bool Quadtree::isLeaf() {
 }
 
 std::vector<GLuint> Quadtree::getIndicesOfLevel(const int &lod) {
+  // TODO: move into correct update method
   // return false if boundingbox is not in sphere(lod)
   // return true if not in frustum
   //
@@ -89,7 +90,7 @@ std::vector<GLuint> Quadtree::getIndicesOfLevel(const int &lod) {
   std::vector<GLuint> indices;
   for (auto child : children_) {
     auto i = child->getIndicesOfLevel(lod);
-    indices.insert(indices.end(), i.begin(), i.end());
+    indices.insert(indices.cend(), i.cbegin(), i.cend());
   }
 
   return indices;
