@@ -11,3 +11,14 @@
 - (very) simple texture
 - light
 - shadows
+
+
+## Next steps
+
+- refactor terrain: 
+    use mesh struct
+    calculate vertex normals
+    update terrain indices()
+    render terrain()
+- lod
+
