@@ -20,11 +20,13 @@ void Terrain::setAlgorithm(const int &algorithm) {
 }
 
 void Terrain::create() {
-  createVertices();
-  createIndices();
+  verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
+  createHeightMap();
+  createIndices(); // TODO: remove
+  createNormals();
 }
 
-void Terrain::createVertices() {
+void Terrain::createHeightMap() {
 
   /*
 
@@ -41,31 +43,59 @@ void Terrain::createVertices() {
 
   */
 
-  // number of vertices: (3 vectors + 3 colors) * (tileWidth + 1)^2 vertices
-  // tileWidth's unit is triangles
-  vertices_ = std::vector<GLfloat>(6 * (tileWidth_ + 1) * (tileWidth_ + 1));
+  // (tileWidth + 1)^2 vertices
+  vertices_ = std::vector<Vertex>(verticesCount_);
   int idx = 0;
+  size_t width = tileWidth_ + 1;
   GLfloat y;
 
-  for (size_t z = 0; z < tileWidth_ + 1; z++) {
-    for (size_t x = 0; x < tileWidth_ + 1; x++) {
+  for (size_t z = 0; z < width; z++) {
+    for (size_t x = 0; x < width; x++) {
+      idx = z * width + x;
+
       // use x and z (mapped to [-1, 1]) to create height generated with
       // noise algorithm
       y = noise_->GetValue(mapToInterval(x), 0.0f, mapToInterval(z));
 
+      // set position
+      vertices_[idx].position = glm::vec3(
+          static_cast<GLfloat>(x),
+          static_cast<GLfloat>(Constants::MaxMeshHeight * y),
+          static_cast<GLfloat>(z)
+          );
 
-      // coordinates
-      vertices_[idx++] = static_cast<GLfloat>(x);
-      vertices_[idx++] = static_cast<GLfloat>(Constants::MaxMeshHeight * y);
-      vertices_[idx++] = static_cast<GLfloat>(z);
-
-      // color
-      for (auto color : colorFromHeight(y)) {
-        vertices_[idx++] = color;
-      }
+      // set default normal
+      vertices_[idx].normal = glm::vec3(0.0f, 0.0f, 0.0f);
     }
   }
 }
+
+// TODO: move to quadtree?
+void Terrain::createNormals() {
+  // create normal of every triangle for calculation of vertice normals
+  for (size_t idx = 0; idx < indices_.size(); idx += 3) {
+    // vertices v0, v1 and v2 form a triangle
+    // calculate the normal of this triangle:
+    size_t v0 = indices_[idx];
+    size_t v1 = indices_[idx+1];
+    size_t v2 = indices_[idx+2];
+    glm::vec3 normal = glm::cross(
+        vertices_[v1].position - vertices_[v0].position,
+        vertices_[v2].position - vertices_[v0].position);
+
+    // add normal to each vertice
+    vertices_[v0].normal += normal;
+    vertices_[v1].normal += normal;
+    vertices_[v2].normal += normal;
+  }
+
+  for (auto vertex : vertices_) {
+    // fastNormalize() is faster but normnalize() is more accurate
+    /* vertex.normal = glm::normalize(vertex.normal); */
+    vertex.normal = glm::fastNormalize(vertex.normal);
+  }
+}
+
 
 void Terrain::createIndices() {
 
@@ -81,7 +111,7 @@ void Terrain::createIndices() {
 
   */
 
-  // number of indices: 2 triangles * 3 indices per tile * (tileWidth-1)^2 tiles
+  // number of indices: 2 triangles * 3 indices per tile * (tileWidth)^2 tiles
   indices_ = std::vector<GLuint>(6 * tileWidth_ * tileWidth_);
   int idx = 0;
 
@@ -137,7 +167,7 @@ std::vector<GLuint> Terrain::getIndices() {
   return indices_;
 }
 
-std::vector<GLfloat> Terrain::getVertices() {
+std::vector<Vertex> Terrain::getVertices() {
   return vertices_;
 }
 

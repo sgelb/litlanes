@@ -40,7 +40,7 @@ int Game::run() {
 
   // then bind and set vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GLfloat),
+  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
                &vertices.front(), GL_STATIC_DRAW);
 
   // the element buffer
@@ -49,13 +49,13 @@ int Game::run() {
                &indices.front(), GL_STATIC_DRAW);
 
   // Position attribute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
-                        reinterpret_cast<GLvoid *>(0));
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<GLvoid *>(0));
   // Color attribute
+  glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
                         reinterpret_cast<GLvoid *>(3 * sizeof(GLfloat)));
-  glEnableVertexAttribArray(1);
 
   // Unbind buffers/arrays to prevent strange bugs
   glBindVertexArray(0);
@@ -87,7 +87,7 @@ int Game::run() {
     // TODO: move to terrain-update/render-method
     // Render
     // Clear the colorbuffer
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Activate shader
@@ -114,7 +114,6 @@ int Game::run() {
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    glBindVertexArray(VAO);
     // Calculate the model matrix and pass it to shader before drawing
     glm::mat4 model;
     model = glm::translate(model, glm::vec3(-0.5f, 0.0f, -0.5f));
@@ -123,6 +122,7 @@ int Game::run() {
     glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
     // Finally, draw terrain elements
+    glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 

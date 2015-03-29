@@ -6,7 +6,7 @@ TEST(TerrainTest, verticesCount) {
   Terrain terrain(Constants::TileWidth);
   terrain.setAlgorithm(Constants::Perlin);
   terrain.create();
-  int expected = 6 * (Constants::TileWidth + 1) * (Constants::TileWidth + 1);
+  int expected = (Constants::TileWidth + 1) * (Constants::TileWidth + 1);
   int result = terrain.getVertices().size();
   ASSERT_EQ(expected, result);
 }
