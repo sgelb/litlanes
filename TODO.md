@@ -9,16 +9,13 @@
 - lod with quadtree: ulrich-paper & http://chrisbrough.com
 - gui -> https://github.com/ocornut/imgui
 - (very) simple texture
-- light
 - shadows
 
 
 ## Next steps
 
+- add basic lighting
 - refactor terrain: 
-    use mesh struct
-    calculate vertex normals
     update terrain indices()
-    render terrain()
 - lod
 

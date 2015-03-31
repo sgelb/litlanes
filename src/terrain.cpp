@@ -7,7 +7,6 @@ Terrain::Terrain(const GLuint &tileWidth)
   createVertices();
   createIndices();
   createNormals();
-
   setup();
 }
 
@@ -19,6 +18,7 @@ Terrain::~Terrain() {
 
 void Terrain::setup() {
   // Build and compile our shader program
+  // TODO: proper loading of shaders
   shader_ = std::unique_ptr<Shader>(
       new Shader("shader/default.vert", "shader/default.frag"));
   // Activate shader
