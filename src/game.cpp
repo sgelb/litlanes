@@ -1,9 +1,8 @@
 #include "game.h"
 
-
 Game::Game() : keys_{false} {
-  camera_ = Camera(glm::vec3(Constants::TileWidth / 2, 60.0f,
-                        Constants::TileWidth / 2));
+  camera_ = Camera(
+      glm::vec3(Constants::TileWidth / 2, 60.0f, Constants::TileWidth / 2));
 }
 
 int Game::run() {
@@ -13,54 +12,7 @@ int Game::run() {
   initializeGlew();
   initializeGl();
 
-  // CREATE STUFF
-  ///////////////
-
-  // Set up vertex data (and buffer(s)) and attribute pointers
   Terrain terrain;
-  terrain.create();
-  auto vertices = terrain.getVertices();
-
-  Quadtree quadtree;
-  auto indices = quadtree.getIndicesOfLevel(Constants::MaximumLod);
-
-// ------>
-  // Build and compile our shader program
-  Shader terraShader("shader/default.vert", "shader/default.frag");
-
-  GLuint VAO;
-  glGenVertexArrays(1, &VAO);
-  GLuint VBO; // Vertex Buffer Object
-  glGenBuffers(1, &VBO);
-  GLuint EBO; // Element Buffer Object
-  glGenBuffers(1, &EBO);
-
-  // Bind VAO first,
-  glBindVertexArray(VAO);
-
-  // then bind and set vertex buffers
-  glBindBuffer(GL_ARRAY_BUFFER, VBO);
-  glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex),
-               &vertices.front(), GL_STATIC_DRAW);
-
-  // the element buffer
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(GLuint),
-               &indices.front(), GL_STATIC_DRAW);
-
-  // Position attribute
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        reinterpret_cast<GLvoid *>(0));
-  // Color attribute
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat),
-                        reinterpret_cast<GLvoid *>(3 * sizeof(GLfloat)));
-
-  // Unbind buffers/arrays to prevent strange bugs
-  glBindVertexArray(0);
-// <------
-
 
   // Deltatime
   deltaTime_ = 0.0f; // Time between current frame and last frame
@@ -70,8 +22,6 @@ int Game::run() {
 
   // Game loop
   while (!glfwWindowShouldClose(window_)) {
-    // TODO: refactor in processInput(), update(), render()
-
     // Calculate deltatime of current frame
     GLfloat currentTime = glfwGetTime();
     deltaTime_ = currentTime - lastFrame_;
@@ -84,56 +34,14 @@ int Game::run() {
     glfwPollEvents();
     do_movement(deltaTime_);
 
-    // TODO: move to terrain-update/render-method
-    // Render
-    // Clear the colorbuffer
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Activate shader
-    terraShader.use();
-
-    // Camera/View transformation
-    glm::mat4 view;
-    view = camera_.getViewMatrix();
-
-    // Projection
-    glm::mat4 projection;
-    projection = glm::perspective(
-        camera_.getZoom(), static_cast<GLfloat>(Constants::WindowWidth) /
-                              static_cast<GLfloat>(Constants::WindowHeight),
-        Constants::NearPlane, Constants::FarPlane);
-
-    // Get the uniform locations
-    GLint modelLoc = glGetUniformLocation(terraShader.getProgram(), "model");
-    GLint viewLoc = glGetUniformLocation(terraShader.getProgram(), "view");
-    GLint projLoc =
-        glGetUniformLocation(terraShader.getProgram(), "projection");
-
-    // Pass the matrices to the shader
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-    // Calculate the model matrix and pass it to shader before drawing
-    glm::mat4 model;
-    model = glm::translate(model, glm::vec3(-0.5f, 0.0f, -0.5f));
-    /* GLfloat angle = 20.0f * idx++; */
-    /* model = glm::rotate(model, angle, glm::vec3(1.0f, 0.3f, 0.5f)); */
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-    // Finally, draw terrain elements
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    // Update  and render terrain
+    terrain.update();
+    terrain.render(camera_.getViewMatrix());
 
     // Swap the screen buffers
     glfwSwapBuffers(window_);
   }
 
-  // TODO: refactor in cleanup-method
-  // Properly de-allocate all resources once they've outlived their purpose
-  glDeleteVertexArrays(1, &VAO);
-  glDeleteBuffers(1, &VBO);
   // Terminate GLFW, clearing any resources allocated by GLFW.
   glfwDestroyWindow(window_);
   glfwTerminate();
@@ -147,7 +55,7 @@ void Game::printFps() {
 
   if (lastTime_ >= 1.0f) {
     std::cout << frameCount_ << " fps, " << (1000.0f / frameCount_)
-      << "ms/frame" << std::endl;
+              << "ms/frame" << std::endl;
     frameCount_ = 0;
     lastTime_ = 0.0f;
   }
@@ -175,10 +83,9 @@ void Game::do_movement(const GLfloat &deltaTime) {
   }
 }
 
-
 // Is called whenever a key is pressed/released via GLFW
 void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
-                  int mode) {
+                        int mode) {
 
   Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
 
@@ -228,7 +135,7 @@ void Game::initializeGlfw() {
 
   // Create a GLFWwindow object that we can use for GLFW's functions
   window_ = glfwCreateWindow(Constants::WindowWidth, Constants::WindowHeight,
-      "litlanesfoss", nullptr, nullptr);
+                             "litlanesfoss", nullptr, nullptr);
   glfwMakeContextCurrent(window_);
 
   // Set the required callback functions

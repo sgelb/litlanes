@@ -4,7 +4,7 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
     : level_(level), startpoint_(startpoint) {
 
   // offset of vertices in this level. root is level 0 and
-  // highest level has offset of 1
+  // highest level of detail has offset of 1
   int offset = pow(2, Constants::MaximumLod - level_);
 
   /*
@@ -37,11 +37,11 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
   indices_[5] = tr;
 
   // create bounding box
-  boundingBox_ = std::unique_ptr<BoundingBox>(new BoundingBox(
-        glm::vec3(static_cast<float>((tr - tl))/2.0f,
-          0.0f,  // TODO: include correct y-value
-          static_cast<float>((bl - tl))/2.0f),
-        static_cast<float>(offset)/2.0f));
+  boundingBox_ = std::unique_ptr<BoundingBox>(
+      new BoundingBox(glm::vec3(static_cast<float>((tr - tl)) / 2.0f,
+                                0.0f, // TODO: include correct y-value
+                                static_cast<float>((bl - tl)) / 2.0f),
+                      static_cast<float>(offset) / 2.0f));
 
   // add children
   if (level_ < Constants::MaximumLod) {

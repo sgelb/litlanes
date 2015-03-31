@@ -10,14 +10,10 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
-#include "shader.h"
 #include "terrain.h"
 #include "constants.h"
 #include "camera.h"
-#include "quadtree.h"
 
 class Game {
   public:

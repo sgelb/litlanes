@@ -81,6 +81,7 @@ if (BUILD_TESTS)
   set(TEST_SOURCES
     src/boundingbox.cpp
     src/quadtree.cpp
+    src/shader.cpp
     src/terrain.cpp
     )
 
@@ -88,6 +89,7 @@ if (BUILD_TESTS)
     include/boundingbox.h
     include/constants.h
     include/quadtree.h
+    include/shader.h
     include/terrain.h
     )
 
