@@ -28,6 +28,7 @@ class Game {
     GLfloat lastFrame_;
     GLfloat lastTime_;
     int frameCount_;
+    GLenum fillmode_;
 
     void initializeGlfw();
     void initializeGlew();

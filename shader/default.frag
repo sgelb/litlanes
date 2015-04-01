@@ -1,9 +1,26 @@
 #version 330 core
 
-in vec3 ourColor;
 out vec4 color;
+
+in vec3 fragColor;
+in vec3 normal;
+in vec3 fragmentPosition;
+
+uniform vec3 lightColor;
+uniform vec3 lightPosition;
 	
 void main() {
-	color = vec4(ourColor, 1.0f);
+  // ambient lighting
+  vec3 ambient = 0.3f * lightColor;
+
+  // diffuse lighting
+  // normalizing simplifies calculations
+  vec3 norm = normalize(normal);
+  vec3 lightDirection = normalize(lightPosition - fragmentPosition);
+  vec3 diffuse = max(dot(normal, lightDirection), 0.0f) * lightColor;
+
+  // result
+  vec3 result = (ambient + diffuse) * fragColor;
+	color = vec4(result, 1.0f);
 }
 

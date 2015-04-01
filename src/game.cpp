@@ -1,8 +1,8 @@
 #include "game.h"
 
-Game::Game() : keys_{false} {
+Game::Game() : keys_{false}, fillmode_{GL_FILL} {
   camera_ = Camera(
-      glm::vec3(Constants::TileWidth / 2, 60.0f, Constants::TileWidth / 2));
+      glm::vec3(Constants::TileWidth / 2, 30.0f, Constants::TileWidth / 2));
 }
 
 int Game::run() {
@@ -80,6 +80,10 @@ void Game::do_movement(const GLfloat &deltaTime) {
   }
   if (keys_[GLFW_KEY_Q]) {
     camera_.processKeyboard(Camera::DOWN, deltaTime);
+  }
+  if (keys_[GLFW_KEY_X]) {
+    fillmode_ = (fillmode_ == GL_FILL) ? GL_LINE : GL_FILL;
+    glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
   }
 }
 
@@ -161,5 +165,4 @@ void Game::initializeGl() {
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }

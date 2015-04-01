@@ -2,12 +2,16 @@
 
 Terrain::Terrain(const GLuint &tileWidth)
     : tileWidth_(tileWidth), noise_(modulePtr(new noise::module::Perlin)) {
+  // initialize terrain
   verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
   createVertices();
   createIndices();
   createNormals();
-  setup();
+
+  // setup OpenGl stuff
+  setupShader();
+  setupBuffers();
 }
 
 Terrain::~Terrain() {
@@ -16,14 +20,22 @@ Terrain::~Terrain() {
   glDeleteBuffers(1, &VBO_);
 }
 
-void Terrain::setup() {
+void Terrain::setupShader() {
   // Build and compile our shader program
   // TODO: proper loading of shaders
   shader_ = std::unique_ptr<Shader>(
       new Shader("shader/default.vert", "shader/default.frag"));
-  // Activate shader
-  shader_->use();
 
+  shader_->use();
+  lightPos_ = glm::vec3(10.0f, 10.0f, 10.0f);
+  lightColorLoc_ = glGetUniformLocation(shader_->getProgram(), "lightColor");
+  lightPosLoc_ = glGetUniformLocation(shader_->getProgram(), "lightPosition");
+  glUniform3f(lightColorLoc_, 1.0f, 1.0f, 1.0f);
+  glUniform3f(lightPosLoc_, lightPos_.x, lightPos_.y, lightPos_.z);
+}
+
+
+void Terrain::setupBuffers() {
   glGenVertexArrays(1, &VAO_);
   glGenBuffers(1, &VBO_);
   glGenBuffers(1, &EBO_);
@@ -45,10 +57,16 @@ void Terrain::setup() {
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<GLvoid *>(0));
+
   // Normal attribute
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<GLvoid *>(offsetof(Vertex, normal)));
+
+  // Color attribute
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<GLvoid *>(offsetof(Vertex, color)));
 
   // Unbind buffers/arrays to prevent strange bugs
   glBindVertexArray(0);
@@ -60,10 +78,10 @@ void Terrain::update() {
 }
 
 void Terrain::render(const glm::mat4 &view) {
-  // Render
   // Clear the colorbuffer
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
   // Projection
   glm::mat4 projection;
@@ -131,6 +149,9 @@ void Terrain::createVertices() {
 
       // set default normal
       vertices_[idx].normal = glm::vec3(0.0f, 0.0f, 0.0f);
+
+      // set color
+      vertices_[idx].color = colorFromHeight(y);
     }
   }
 }
@@ -148,9 +169,10 @@ void Terrain::createNormals() {
     size_t v0 = indices_[idx];
     size_t v1 = indices_[idx + 1];
     size_t v2 = indices_[idx + 2];
-    glm::vec3 normal =
+    glm::vec3 normal = glm::normalize(
         glm::cross(vertices_[v1].position - vertices_[v0].position,
-                   vertices_[v2].position - vertices_[v0].position);
+                   vertices_[v2].position - vertices_[v0].position)
+        );
 
     // add normal to each vertice
     vertices_[v0].normal += normal;
@@ -158,38 +180,40 @@ void Terrain::createNormals() {
     vertices_[v2].normal += normal;
   }
 
+  /*
   for (auto vertex : vertices_) {
     // fastNormalize() is faster but normnalize() is more accurate
-    /* vertex.normal = glm::normalize(vertex.normal); */
+    // vertex.normal = glm::normalize(vertex.normal);
     vertex.normal = glm::fastNormalize(vertex.normal);
   }
+  */
 }
 
-std::vector<GLfloat> Terrain::colorFromHeight(const GLfloat &height) {
+glm::vec3 Terrain::colorFromHeight(const GLfloat &height) {
   // simplified color model with 5 "height zones"
 
   if (height > 0.9) {
     // snow
-    std::vector<GLfloat> color = {1.0f, 1.0f, 1.0f};
+    glm::vec3 color = {1.0f, 1.0f, 1.0f};
     return color;
   }
   if (height > 0.3) {
     // rock
-    std::vector<GLfloat> color = {0.5f, 0.5f, 0.5f};
+    glm::vec3 color = {0.5f, 0.5f, 0.5f};
     return color;
   }
   if (height > -0.5) {
     // forest
-    std::vector<GLfloat> color = {0.2f, 0.4f, 0.25f};
+    glm::vec3 color = {0.2f, 0.4f, 0.25f};
     return color;
   }
   if (height > -0.55) {
     // beach
-    std::vector<GLfloat> color = {0.65f, 0.65f, 0.0f};
+    glm::vec3 color = {0.65f, 0.65f, 0.0f};
     return color;
   }
   // water
-  std::vector<GLfloat> color = {0.0f, 0.5f, 1.0f};
+  glm::vec3 color = {0.0f, 0.5f, 1.0f};
   return color;
 }
 

@@ -21,6 +21,7 @@
 struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
+  glm::vec3 color;
 };
 
 
@@ -49,11 +50,17 @@ class Terrain {
   GLuint VAO_;  // Vertex Array Object
   GLuint VBO_;  // Vertex Buffer Object
   GLuint EBO_;  // Element Buffer Object
+  GLint objectColorLoc_;
+  GLint lightColorLoc_;
+  GLint lightPosLoc_;
+  glm::vec3 lightPos_;
 
-  void setup();
   void createVertices();
   void createIndices();
   void createNormals();
+  void setupShader();
+  void setupBuffers();
+
   GLfloat mapToInterval(const GLfloat &input);
-  std::vector<GLfloat> colorFromHeight(const GLfloat &height);
+  glm::vec3 colorFromHeight(const GLfloat &height);
 };
