@@ -28,6 +28,6 @@ class BoundingBox {
       const float &sphereRadius);
 
  private:
-  glm::vec3 position_;
+  glm::vec3 center_;
   float extents_;
 };

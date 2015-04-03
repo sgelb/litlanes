@@ -104,7 +104,7 @@ void Terrain::render(const glm::mat4 &view) {
   glBindVertexArray(0);
 }
 
-Terrain::cleanup() {
+void Terrain::cleanup() {
   // Properly de-allocate all resources once they've outlived their purpose
   glDeleteVertexArrays(1, &VAO_);
   glDeleteBuffers(1, &VBO_);

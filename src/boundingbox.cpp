@@ -1,7 +1,7 @@
 #include "boundingbox.h"
 
-BoundingBox::BoundingBox(glm::vec3 position, float extents)
-    : position_(position), extents_(extents) {
+BoundingBox::BoundingBox(glm::vec3 center, float extents)
+    : center_(center), extents_(extents) {
 }
 
 bool BoundingBox::intersectsWithSphere(const glm::vec3 &sphere,
@@ -14,14 +14,14 @@ bool BoundingBox::intersectsWithSphere(const glm::vec3 &sphere,
   for (int axis = 0; axis < 3; axis++) {
 
     // if sphere is "below" box
-    if (sphere[axis] < (position_[axis] - extents_)) {
-      s = sphere[axis] - (position_[axis] - extents_);
+    if (sphere[axis] < (center_[axis] - extents_)) {
+      s = sphere[axis] - (center_[axis] - extents_);
       distance += s * s;
     }
 
     // if sphere is "above" box
-    if (sphere[axis] > (position_[axis] + extents_)) {
-      s = sphere[axis] - (position_[axis] + extents_);
+    if (sphere[axis] > (center_[axis] + extents_)) {
+      s = sphere[axis] - (center_[axis] + extents_);
       distance += s * s;
     }
 
