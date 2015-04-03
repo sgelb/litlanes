@@ -18,6 +18,9 @@
 #include "shader.h"
 
 
+/**
+ * @brief Vertex defined by position, normal and color
+ */
 struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
@@ -25,15 +28,56 @@ struct Vertex {
 };
 
 
+/**
+ * @brief TODO: what is this class?
+ */
 class Terrain {
  public:
+   /**
+    * @brief Construct terrain tile of provided size
+    *
+    * @param tileWidth edge length of terrain tile
+    */
   explicit Terrain(const GLuint &tileWidth = Constants::TileWidth);
-  ~Terrain();
+
+  /**
+   * @brief Set algorithm for heightmap generation
+   *
+   * @param algorithm TODO: define in Constants
+   */
   void setAlgorithm(const int &algorithm);
+
+  /**
+   * @brief Update terrain before rendering
+   */
   void update();
+
+  /**
+   * @brief Render terrain
+   *
+   * @param view Viewing matrix for correct rendering
+   */
   void render(const glm::mat4 &view);
+
+  /**
+   * @brief Clean up, i.e. delete buffer arrays
+   */
+  void cleanup();
+
+  /**
+   * @brief Vertices of terrain mesh
+   *
+   * @return vertices
+   */
   std::vector<Vertex> getVertices();
+
+  /**
+   * @brief Indices of vertices of terrain mesh
+   *
+   * @return indices
+   */
   std::vector<GLuint> getIndices();
+
 
 
  private:

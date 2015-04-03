@@ -14,12 +14,6 @@ Terrain::Terrain(const GLuint &tileWidth)
   setupBuffers();
 }
 
-Terrain::~Terrain() {
-  // Properly de-allocate all resources once they've outlived their purpose
-  glDeleteVertexArrays(1, &VAO_);
-  glDeleteBuffers(1, &VBO_);
-}
-
 void Terrain::setupShader() {
   // Build and compile our shader program
   // TODO: proper loading of shaders
@@ -109,6 +103,13 @@ void Terrain::render(const glm::mat4 &view) {
   glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
 }
+
+Terrain::cleanup() {
+  // Properly de-allocate all resources once they've outlived their purpose
+  glDeleteVertexArrays(1, &VAO_);
+  glDeleteBuffers(1, &VBO_);
+}
+
 
 void Terrain::createVertices() {
 

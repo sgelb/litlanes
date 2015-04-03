@@ -1,6 +1,5 @@
 #include "camera.h"
 
-// Constructor with vectors
 Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch)
     : front_(glm::vec3(0.0f, 0.0f, -1.0f)),
       movementSpeed_(Constants::Speed),
@@ -11,13 +10,6 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch)
   yaw_ = yaw;
   pitch_ = pitch;
   updateCameraVectors();
-}
-
-// Delegate constructor with scalar values
-Camera::Camera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX,
-               GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch)
-    : Camera(glm::vec3(posX, posY, posZ), glm::vec3(upX, upY, upZ), yaw,
-             pitch) {
 }
 
 // Returns the view matrix calculated using Eular Angles and the LookAt Matrix
@@ -76,18 +68,6 @@ void Camera::processMouseMovement(GLfloat xoffset, GLfloat yoffset) {
   updateCameraVectors();
 }
 
-// Processes input received from a mouse scroll-wheel event. Only requires
-// input on the vertical wheel-axis
-void Camera::processMouseScroll(GLfloat yoffset) {
-  // FIXME
-  if (zoom_ >= 1.0f && zoom_ <= 45.0f)
-    zoom_ -= yoffset;
-  if (zoom_ <= 1.0f)
-    zoom_ = 1.0f;
-  if (zoom_ >= 45.0f)
-    zoom_ = 45.0f;
-}
-
 // Calculates the front vector from the Camera's (updated) Eular Angles
 void Camera::updateCameraVectors() {
   // Calculate the new Front vector
@@ -101,8 +81,4 @@ void Camera::updateCameraVectors() {
   // Normalize the vectors, because their length gets closer to 0 the more you
   // look up or down which results in slower movement.
   up_ = glm::normalize(glm::cross(right_, front_));
-}
-
-GLfloat Camera::getZoom() {
-  return zoom_;
 }

@@ -2,25 +2,41 @@
 
 #include <vector>
 
+/**
+ * @brief Constants
+ */
 namespace Constants {
 // WINDOW
 
-// default width and height of window
+  //@{
+  /**
+   * @brief Window size
+   */
 static const GLuint WindowWidth = 1200;
 static const GLuint WindowHeight = 800;
+  //@}
 
 // CAMERA
 
-// distance to near/far plane of vire frutrum
+
+  //@{
+  /**
+   * @brief Distance to near/far plane of view frustum
+   */
 static const GLfloat NearPlane = 0.1f;
 static const GLfloat FarPlane = 1000.0f;
+  //@}
 
-// default camera aspect/zoom
+  //@{
+  /**
+   * @brief Default camera values
+   */
 static const GLfloat Zoom = 45.0f;
 static const GLfloat Yaw = -90.0f;
 static const GLfloat Pitch = 0.0f;
 static const GLfloat Speed = 30.0f;
 static const GLfloat Sensitivty = 0.5f;
+  //@}
 
 // TERRAIN
 

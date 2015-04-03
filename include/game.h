@@ -15,9 +15,20 @@
 #include "constants.h"
 #include "camera.h"
 
+/**
+ * @brief Initialize program and run main loop
+ */
 class Game {
   public:
+    /**
+     * @brief Constructor
+     */
     Game();
+    /**
+     * @brief Main loop
+     *
+     * @return Exit value
+     */
     int run();
 
   private:
@@ -30,8 +41,8 @@ class Game {
     int frameCount_;
     GLenum fillmode_;
 
-    void initializeGlfw();
-    void initializeGlew();
+    int initializeGlfw();
+    int initializeGlew();
     void initializeGl();
     void printFps();
     void do_movement(const GLfloat &deltaTime);
