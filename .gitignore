@@ -4,3 +4,6 @@ litlanes*
 
 # ignore build directory
 build/*
+
+# ignore doxygen directory
+doxygen/*
