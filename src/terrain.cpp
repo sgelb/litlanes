@@ -21,7 +21,7 @@ void Terrain::setupShader() {
       new Shader("shader/default.vert", "shader/default.frag"));
 
   shader_->use();
-  lightPos_ = glm::vec3(10.0f, 10.0f, 10.0f);
+  lightPos_ = glm::vec3(500.0f, 500.0f, 0.0f);
   lightColorLoc_ = glGetUniformLocation(shader_->getProgram(), "lightColor");
   lightPosLoc_ = glGetUniformLocation(shader_->getProgram(), "lightPosition");
   glUniform3f(lightColorLoc_, 1.0f, 1.0f, 1.0f);
@@ -66,9 +66,12 @@ void Terrain::setupBuffers() {
   glBindVertexArray(0);
 }
 
-void Terrain::update() {
-  // do we need to create new tiles?
-  // recalc indices/lod
+void Terrain::update(const GLfloat &deltaTime) {
+  glm::mat4 rotationMat(1);
+  rotationMat = glm::rotate(rotationMat, deltaTime * 0.5f,
+      glm::vec3(0.0f, 1.0f, 0.0f));
+  lightPos_ = glm::vec3(rotationMat * glm::vec4(lightPos_, 1.0f));
+  glUniform3f(lightPosLoc_, lightPos_.x, lightPos_.y, lightPos_.z);
 }
 
 void Terrain::render(const glm::mat4 &view) {
@@ -76,12 +79,10 @@ void Terrain::render(const glm::mat4 &view) {
   glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
   // Projection
-  glm::mat4 projection;
-  projection = glm::perspective(
-      Constants::Zoom, static_cast<GLfloat>(Constants::WindowWidth) /
-                           static_cast<GLfloat>(Constants::WindowHeight),
+  glm::mat4 projection = glm::perspective(Constants::Zoom,
+      static_cast<GLfloat>(Constants::WindowWidth) /
+      static_cast<GLfloat>(Constants::WindowHeight),
       Constants::NearPlane, Constants::FarPlane);
 
   // Get the uniform locations
@@ -94,6 +95,7 @@ void Terrain::render(const glm::mat4 &view) {
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
   // Calculate the model matrix and pass it to shader before drawing
+  // TODO: what is happening here
   glm::mat4 model;
   model = glm::translate(model, glm::vec3(-0.5f, 0.0f, -0.5f));
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -195,7 +197,7 @@ glm::vec3 Terrain::colorFromHeight(const GLfloat &height) {
 
   if (height > 0.9) {
     // snow
-    glm::vec3 color = {1.0f, 1.0f, 1.0f};
+    glm::vec3 color = {0.8f, 0.8f, 0.8f};
     return color;
   }
   if (height > 0.3) {

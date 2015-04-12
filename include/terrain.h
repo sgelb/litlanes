@@ -50,7 +50,7 @@ class Terrain {
   /**
    * @brief Update terrain before rendering
    */
-  void update();
+  void update(const GLfloat &deltaTime);
 
   /**
    * @brief Render terrain
@@ -104,6 +104,8 @@ class Terrain {
   void createNormals();
   void setupShader();
   void setupBuffers();
+
+  void rotateLight();
 
   GLfloat mapToInterval(const GLfloat &input);
   glm::vec3 colorFromHeight(const GLfloat &height);

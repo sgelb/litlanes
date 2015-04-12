@@ -6,7 +6,7 @@ layout (location = 2) in vec3 colorIn;
 
 out vec3 fragmentPosition;
 out vec3 normal;
-out vec3 fragColor;
+out vec3 fragmentColor;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -14,9 +14,8 @@ uniform mat4 projection;
 
 void main() {
 	gl_Position = projection * view * model * vec4(position, 1.0f);
-  // fragmentPosition is a vertex in world space
   fragmentPosition = vec3(model * vec4(position, 1.0f));
-  fragColor = colorIn;
+  fragmentColor = colorIn;
   normal = normalIn;
 }
 

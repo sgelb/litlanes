@@ -2,7 +2,7 @@
 
 out vec4 color;
 
-in vec3 fragColor;
+in vec3 fragmentColor;
 in vec3 normal;
 in vec3 fragmentPosition;
 
@@ -20,7 +20,7 @@ void main() {
   vec3 diffuse = max(dot(normal, lightDirection), 0.0f) * lightColor;
 
   // result
-  vec3 result = (ambient + diffuse) * fragColor;
+  vec3 result = (ambient + diffuse) * fragmentColor;
 	color = vec4(result, 1.0f);
 }
 

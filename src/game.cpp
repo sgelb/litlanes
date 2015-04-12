@@ -39,7 +39,7 @@ int Game::run() {
     do_movement(deltaTime_);
 
     // Update  and render terrain
-    terrain.update();
+    terrain.update(deltaTime_);
     terrain.render(camera_.getViewMatrix());
 
     // Swap the screen buffers
