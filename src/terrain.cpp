@@ -7,8 +7,10 @@ Terrain::Terrain(const GLuint &tileWidth)
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
   createVertices();
   createIndices();
+}
 
-  // setup OpenGl stuff
+void Terrain::setup() {
+  // setup OpenGl stuff. there must be an opengl context!
   setupShader();
   setupBuffers();
 }

@@ -17,6 +17,7 @@ int Game::run() {
   initializeGl();
 
   Terrain terrain;
+  terrain.setup();
 
   // Deltatime
   deltaTime_ = 0.0f; // Time between current frame and last frame

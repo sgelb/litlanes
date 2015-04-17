@@ -40,6 +40,11 @@ class Terrain {
   explicit Terrain(const GLuint &tileWidth = Constants::TileWidth);
 
   /**
+   * @brief Set up shader and opengl buffers
+   */
+  void setup();
+
+  /**
    * @brief Set algorithm for heightmap generation
    *
    * @param algorithm TODO: define in Constants
