@@ -66,8 +66,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADER} ${SHADER})
 target_link_libraries(${PROJECT_NAME}	${ALL_LIBS})
 
-SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$")
-
 # Test library and executables
 
 if (BUILD_TESTS)
