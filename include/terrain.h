@@ -19,11 +19,10 @@
 
 
 /**
- * @brief Vertex defined by position, normal and color
+ * @brief Vertex defined by position and color
  */
 struct Vertex {
   glm::vec3 position;
-  glm::vec3 normal;
   glm::vec3 color;
 };
 
@@ -101,7 +100,6 @@ class Terrain {
 
   void createVertices();
   void createIndices();
-  void createNormals();
   void setupShader();
   void setupBuffers();
 

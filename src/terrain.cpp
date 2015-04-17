@@ -7,7 +7,6 @@ Terrain::Terrain(const GLuint &tileWidth)
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
   createVertices();
   createIndices();
-  createNormals();
 
   // setup OpenGl stuff
   setupShader();
@@ -51,11 +50,6 @@ void Terrain::setupBuffers() {
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<GLvoid *>(0));
-
-  // Normal attribute
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        reinterpret_cast<GLvoid *>(offsetof(Vertex, normal)));
 
   // Color attribute
   glEnableVertexAttribArray(2);
@@ -150,9 +144,6 @@ void Terrain::createVertices() {
                     static_cast<GLfloat>(Constants::MaxMeshHeight * y),
                     static_cast<GLfloat>(z));
 
-      // set default normal
-      vertices_[idx].normal = glm::vec3(0.0f, 0.0f, 0.0f);
-
       // set color
       vertices_[idx].color = colorFromHeight(y);
     }
@@ -161,35 +152,6 @@ void Terrain::createVertices() {
 
 void Terrain::createIndices() {
   indices_ = quadtree_->getIndicesOfLevel(Constants::MaximumLod);
-}
-
-// TODO: move to quadtree because it depends on lod?
-void Terrain::createNormals() {
-  // create normal of every triangle for calculation of vertice normals
-  for (size_t idx = 0; idx < indices_.size(); idx += 3) {
-    // vertices v0, v1 and v2 form a triangle
-    // calculate the normal of this triangle:
-    size_t v0 = indices_[idx];
-    size_t v1 = indices_[idx + 1];
-    size_t v2 = indices_[idx + 2];
-    glm::vec3 normal = glm::normalize(
-        glm::cross(vertices_[v1].position - vertices_[v0].position,
-                   vertices_[v2].position - vertices_[v0].position)
-        );
-
-    // add normal to each vertice
-    vertices_[v0].normal += normal;
-    vertices_[v1].normal += normal;
-    vertices_[v2].normal += normal;
-  }
-
-  /*
-  for (auto vertex : vertices_) {
-    // fastNormalize() is faster but normnalize() is more accurate
-    // vertex.normal = glm::normalize(vertex.normal);
-    vertex.normal = glm::fastNormalize(vertex.normal);
-  }
-  */
 }
 
 glm::vec3 Terrain::colorFromHeight(const GLfloat &height) {
