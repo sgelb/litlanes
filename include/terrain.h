@@ -37,8 +37,8 @@ class Terrain {
     *
     * @param tileWidth edge length of terrain tile
     */
-  explicit Terrain(const GLuint &tileWidth = Constants::TileWidth);
-
+  explicit Terrain(const int &x, const int &z, 
+      const GLuint &tileWidth = Constants::TileWidth);
   /**
    * @brief Set up shader and opengl buffers
    */
@@ -101,6 +101,8 @@ class Terrain {
   GLint objectColorLoc_;
   GLint lightColorLoc_;
   GLint lightPosLoc_;
+  int xOffset_;
+  int zOffset_;
   glm::vec3 lightPos_;
 
   void createVertices();

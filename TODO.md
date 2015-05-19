@@ -14,6 +14,8 @@
 
 ## Next steps
 
+
+- show grid of tiles
 - add basic lighting: ambient + directional
 - add basic texture
 - refactor terrain: 

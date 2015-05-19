@@ -40,11 +40,13 @@ class Game {
     GLfloat lastTime_;
     int frameCount_;
     GLenum fillmode_;
+    std::vector<std::unique_ptr<Terrain>> terrains_;
 
     int initializeGlfw();
     int initializeGlew();
     void initializeGl();
     void printFps();
+    void printCameraPosition();
     void do_movement(const GLfloat &deltaTime);
     static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
         int mode);

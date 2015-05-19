@@ -54,6 +54,8 @@ class Camera {
    * @param yoffset y-offset of mouse
    */
   void processMouseMovement(GLfloat xoffset, GLfloat yoffset);
+
+  glm::vec3 getPosition();
  private:
   // Camera Attributes
   glm::vec3 position_;

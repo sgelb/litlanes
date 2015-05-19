@@ -1,7 +1,8 @@
 #include "terrain.h"
 
-Terrain::Terrain(const GLuint &tileWidth)
-    : tileWidth_(tileWidth), noise_(modulePtr(new noise::module::Perlin)) {
+Terrain::Terrain(const int &x, const int &z, const GLuint &tileWidth)
+    : tileWidth_(tileWidth), noise_(modulePtr(new noise::module::Perlin)),
+      xOffset_(x*Constants::TileWidth), zOffset_(z*Constants::TileWidth) {
   // initialize terrain
   verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
@@ -31,19 +32,18 @@ void Terrain::setupShader() {
 
 
 void Terrain::setupBuffers() {
-  glGenVertexArrays(1, &VAO_);
-  glGenBuffers(1, &VBO_);
-  glGenBuffers(1, &EBO_);
-
   // Bind VAO first,
+  glGenVertexArrays(1, &VAO_);
   glBindVertexArray(VAO_);
 
   // then bind and set vertex buffers
+  glGenBuffers(1, &VBO_);
   glBindBuffer(GL_ARRAY_BUFFER, VBO_);
   glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(Vertex),
                &vertices_.front(), GL_STATIC_DRAW);
 
   // the element buffer
+  glGenBuffers(1, &EBO_);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_.size() * sizeof(GLuint),
                &indices_.front(), GL_STATIC_DRAW);
@@ -71,10 +71,6 @@ void Terrain::update(const GLfloat &deltaTime) {
 }
 
 void Terrain::render(const glm::mat4 &view) {
-  // Clear the colorbuffer
-  glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   // Projection
   glm::mat4 projection = glm::perspective(Constants::Zoom,
       static_cast<GLfloat>(Constants::WindowWidth) /
@@ -83,6 +79,7 @@ void Terrain::render(const glm::mat4 &view) {
 
   // Get the uniform locations
   GLint modelLoc = glGetUniformLocation(shader_->getProgram(), "model");
+  /* std::cout << modelLoc << " " << xOffset_ << "," << zOffset_ << std::endl; */
   GLint viewLoc = glGetUniformLocation(shader_->getProgram(), "view");
   GLint projLoc = glGetUniformLocation(shader_->getProgram(), "projection");
 
@@ -97,8 +94,9 @@ void Terrain::render(const glm::mat4 &view) {
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
   // Finally, draw terrain elements
+  std::cout << VAO_ << std::endl;
   glBindVertexArray(VAO_);
-  glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 }
 
@@ -136,15 +134,16 @@ void Terrain::createVertices() {
     for (size_t x = 0; x < width; x++) {
       idx = z * width + x;
 
-      // use x and z (mapped to [-1, 1]) to create height generated with
-      // noise algorithm
-      y = noise_->GetValue(mapToInterval(x), 0.0f, mapToInterval(z));
+      // use world space coordinates of x and z (mapped to [-1, 1]) to create
+      // height generated with noise algorithm
+      y = noise_->GetValue(mapToInterval(xOffset_ + x), 0.0f,
+          mapToInterval(zOffset_ + z));
 
       // set position
       vertices_[idx].position =
-          glm::vec3(static_cast<GLfloat>(x),
+          glm::vec3(static_cast<GLfloat>(x + xOffset_),
                     static_cast<GLfloat>(Constants::MaxMeshHeight * y),
-                    static_cast<GLfloat>(z));
+                    static_cast<GLfloat>(z + zOffset_));
 
       // set color
       vertices_[idx].color = colorFromHeight(y);

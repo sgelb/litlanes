@@ -2,7 +2,7 @@
 
 Game::Game() : keys_{false}, fillmode_{GL_FILL} {
   camera_ = Camera(
-      glm::vec3(Constants::TileWidth / 2, 30.0f, Constants::TileWidth / 2));
+      glm::vec3(Constants::TileWidth / 2, 60.0f, Constants::TileWidth / 2));
 }
 
 int Game::run() {
@@ -16,8 +16,13 @@ int Game::run() {
   }
   initializeGl();
 
-  Terrain terrain;
-  terrain.setup();
+  for (size_t x = 0; x < 3; x++) {
+    for (size_t z = 0; z < 3; z++) {
+      std::unique_ptr<Terrain> terrain(new Terrain(x, z));
+      terrain->setup();
+      terrains_.push_back(std::move(terrain));
+    }
+  }
 
   // Deltatime
   deltaTime_ = 0.0f; // Time between current frame and last frame
@@ -33,22 +38,35 @@ int Game::run() {
     lastFrame_ = currentTime;
 
     // Print fps on stdout
-    printFps();
+    /* printFps(); */
 
     // Check for events and trigger callbacks
     glfwPollEvents();
     do_movement(deltaTime_);
 
-    // Update  and render terrain
-    terrain.update(deltaTime_);
-    terrain.render(camera_.getViewMatrix());
+    // Print camera position
+    /* printCameraPosition(); */
+
+    // Recalculate needed tiles
+   
+    // Clear the colorbuffer
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f); 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Update  and render terrains
+    for (size_t idx = 0; idx < terrains_.size(); idx++) {
+      terrains_[idx]->update(deltaTime_);
+      terrains_[idx]->render(camera_.getViewMatrix());
+    }
 
     // Swap the screen buffers
     glfwSwapBuffers(window_);
   }
 
   // Clean up terrain
-  terrain.cleanup();
+  for (size_t idx = 0; idx < terrains_.size(); idx++) {
+    terrains_[idx]->cleanup();
+  }
 
   // Terminate GLFW, clearing any resources allocated by GLFW.
   glfwDestroyWindow(window_);
@@ -67,6 +85,12 @@ void Game::printFps() {
     frameCount_ = 0;
     lastTime_ = 0.0f;
   }
+}
+
+void Game::printCameraPosition() {
+  glm::vec3 pos = camera_.getPosition();
+  std::cout << "Tile " << std::floor(pos.x/Constants::TileWidth) << ", "
+    << std::floor(pos.z/Constants::TileWidth) << std::endl;
 }
 
 void Game::do_movement(const GLfloat &deltaTime) {

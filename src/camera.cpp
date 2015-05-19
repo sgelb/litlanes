@@ -82,3 +82,8 @@ void Camera::updateCameraVectors() {
   // look up or down which results in slower movement.
   up_ = glm::normalize(glm::cross(right_, front_));
 }
+
+// Get current camera position
+glm::vec3 Camera::getPosition() {
+  return position_;
+}
