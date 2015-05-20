@@ -69,6 +69,14 @@ class Terrain {
   void cleanup();
 
   /**
+   * @brief Update coordinates and recalculate values
+   *
+   * @param x 
+   * @param z
+   */
+  void updateCoordinates(const int &x, const int &z);
+
+  /**
    * @brief Vertices of terrain mesh
    *
    * @return vertices

@@ -1,8 +1,10 @@
 #include "terrain.h"
 
 Terrain::Terrain(const int &x, const int &z, const GLuint &tileWidth)
-    : tileWidth_(tileWidth), noise_(modulePtr(new noise::module::Perlin)),
-      xOffset_(x*Constants::TileWidth), zOffset_(z*Constants::TileWidth) {
+    : tileWidth_(tileWidth),
+      noise_(modulePtr(new noise::module::Perlin)),
+      xOffset_(x * Constants::TileWidth),
+      zOffset_(z * Constants::TileWidth) {
   // initialize terrain
   verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
@@ -29,7 +31,6 @@ void Terrain::setupShader() {
   glUniform3f(lightColorLoc_, 1.0f, 1.0f, 1.0f);
   glUniform3f(lightPosLoc_, lightPos_.x, lightPos_.y, lightPos_.z);
 }
-
 
 void Terrain::setupBuffers() {
   // Bind VAO first,
@@ -64,22 +65,21 @@ void Terrain::setupBuffers() {
 
 void Terrain::update(const GLfloat &deltaTime) {
   glm::mat4 rotationMat(1);
-  rotationMat = glm::rotate(rotationMat, deltaTime * 0.5f,
-      glm::vec3(0.0f, 1.0f, 0.0f));
+  rotationMat =
+      glm::rotate(rotationMat, deltaTime * 0.5f, glm::vec3(0.0f, 1.0f, 0.0f));
   lightPos_ = glm::vec3(rotationMat * glm::vec4(lightPos_, 1.0f));
   glUniform3f(lightPosLoc_, lightPos_.x, lightPos_.y, lightPos_.z);
 }
 
 void Terrain::render(const glm::mat4 &view) {
   // Projection
-  glm::mat4 projection = glm::perspective(Constants::Zoom,
-      static_cast<GLfloat>(Constants::WindowWidth) /
-      static_cast<GLfloat>(Constants::WindowHeight),
+  glm::mat4 projection = glm::perspective(
+      Constants::Zoom, static_cast<GLfloat>(Constants::WindowWidth) /
+                           static_cast<GLfloat>(Constants::WindowHeight),
       Constants::NearPlane, Constants::FarPlane);
 
   // Get the uniform locations
   GLint modelLoc = glGetUniformLocation(shader_->getProgram(), "model");
-  /* std::cout << modelLoc << " " << xOffset_ << "," << zOffset_ << std::endl; */
   GLint viewLoc = glGetUniformLocation(shader_->getProgram(), "view");
   GLint projLoc = glGetUniformLocation(shader_->getProgram(), "projection");
 
@@ -94,7 +94,6 @@ void Terrain::render(const glm::mat4 &view) {
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
   // Finally, draw terrain elements
-  std::cout << VAO_ << std::endl;
   glBindVertexArray(VAO_);
   glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
@@ -105,7 +104,6 @@ void Terrain::cleanup() {
   glDeleteVertexArrays(1, &VAO_);
   glDeleteBuffers(1, &VBO_);
 }
-
 
 void Terrain::createVertices() {
 
@@ -137,7 +135,7 @@ void Terrain::createVertices() {
       // use world space coordinates of x and z (mapped to [-1, 1]) to create
       // height generated with noise algorithm
       y = noise_->GetValue(mapToInterval(xOffset_ + x), 0.0f,
-          mapToInterval(zOffset_ + z));
+                           mapToInterval(zOffset_ + z));
 
       // set position
       vertices_[idx].position =
@@ -206,6 +204,15 @@ std::vector<GLuint> Terrain::getIndices() {
 }
 
 GLfloat Terrain::mapToInterval(const GLfloat &input) {
+  // FIXME: actual input is [LLINT_MIN, LLINT_MAX], input should be of type GLint64
   // map input from [0, Constants::TileWidth] to [-1, 1]
   return 2 * (input / Constants::TileWidth) - 1;
+}
+
+void Terrain::updateCoordinates(const int &x, const int &z) {
+  xOffset_ = x * Constants::TileWidth;
+  zOffset_ = z * Constants::TileWidth;
+  createVertices();
+  createIndices();
+  setupBuffers();
 }

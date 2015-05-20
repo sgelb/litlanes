@@ -16,13 +16,7 @@ int Game::run() {
   }
   initializeGl();
 
-  for (size_t x = 0; x < 3; x++) {
-    for (size_t z = 0; z < 3; z++) {
-      std::unique_ptr<Terrain> terrain(new Terrain(x, z));
-      terrain->setup();
-      terrains_.push_back(std::move(terrain));
-    }
-  }
+  initializeTiles();
 
   // Deltatime
   deltaTime_ = 0.0f; // Time between current frame and last frame
@@ -44,13 +38,15 @@ int Game::run() {
     glfwPollEvents();
     do_movement(deltaTime_);
 
+    // update camera position and create new tiles if neccessary
+    getCurrentPosition();
+    updateTiles();
+
     // Print camera position
     /* printCameraPosition(); */
 
-    // Recalculate needed tiles
-   
     // Clear the colorbuffer
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f); 
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update  and render terrains
@@ -88,9 +84,9 @@ void Game::printFps() {
 }
 
 void Game::printCameraPosition() {
-  glm::vec3 pos = camera_.getPosition();
-  std::cout << "Tile " << std::floor(pos.x/Constants::TileWidth) << ", "
-    << std::floor(pos.z/Constants::TileWidth) << std::endl;
+  std::cout << "Tile " << std::floor(currentPos_.x / Constants::TileWidth)
+            << ", " << std::floor(currentPos_.y / Constants::TileWidth)
+            << std::endl;
 }
 
 void Game::do_movement(const GLfloat &deltaTime) {
@@ -200,4 +196,126 @@ void Game::initializeGl() {
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+}
+
+void Game::initializeTiles() {
+
+  // +----- x
+  // |0 1 2
+  // |3 4 5
+  // |6 7 8
+  // z
+
+  for (size_t z = 0; z < 3; z++) {
+    for (size_t x = 0; x < 3; x++) {
+      std::shared_ptr<Terrain> terrain(new Terrain(x, z));
+      terrain->setup();
+      terrains_.push_back(std::move(terrain));
+    }
+  }
+}
+
+void Game::getCurrentPosition() {
+  previousPos_ = currentPos_;
+  currentPos_.x = camera_.getPosition().x;
+  currentPos_.y = camera_.getPosition().z;
+}
+
+void Game::updateTiles() {
+  int currentTileX = std::floor(currentPos_.x / Constants::TileWidth);
+  int currentTileY = std::floor(currentPos_.y / Constants::TileWidth);
+  int diffX = currentTileX - std::floor(previousPos_.x / Constants::TileWidth);
+  int diffY = currentTileY - std::floor(previousPos_.y / Constants::TileWidth);
+
+  // -------+-------+--------
+  // (1,-1) | (1,0) |  (1,1)      x > 0
+  // -------+-------+--------
+  // (0,-1) | (0,0) |  (0,1)      x = 0
+  // -------+-------+--------
+  // (-1,-1)| (-1,0)| (-1,-1)     x < 0
+  // -------+-------+--------
+  //
+  //  y < 0   y = 0    y > 0
+
+  if (diffX == 0 and diffY == 0) {
+    return; // we are still in middle tile, nothing to do
+  }
+
+  // std::shared_ptr<Terrain> terrain_:
+  // +----- x
+  // |0 1 2
+  // |3 4 5
+  // |6 7 8
+  // z
+
+  std::cout << diffX << "," << diffY << std::endl;
+
+  // Moving north
+  if (diffX > 0) {
+    std::cout << "NORTH";
+    // Move first two rows down
+    // 0 1 2      6 7 8
+    // 3 4 5  ->  0 1 2
+    // 6 7 8      3 4 5
+    std::rotate(terrains_.begin(), terrains_.begin() + 6, terrains_.end());
+
+    // Update first row
+    terrains_[0]->updateCoordinates(currentTileX + 1, currentTileY - 1);
+    terrains_[1]->updateCoordinates(currentTileX + 1, currentTileY);
+    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileY + 1);
+  }
+
+  // Moving south
+  if (diffX < 0) {
+    std::cout << "SOUTH";
+    // Move last two rows up
+    // 0 1 2      3 4 5
+    // 3 4 5  ->  6 7 8
+    // 6 7 8      0 1 2
+    std::rotate(terrains_.begin(), terrains_.begin() + 3, terrains_.end());
+
+    // Update last row
+    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileY - 1);
+    terrains_[7]->updateCoordinates(currentTileX - 1, currentTileY);
+    terrains_[8]->updateCoordinates(currentTileX - 1, currentTileY + 1);
+  }
+
+  // Moving west
+  if (diffY < 0) {
+    std::cout << "WEST";
+    // Move first two columns right
+    // 0 1 2      2 0 1
+    // 3 4 5  ->  5 3 4
+    // 6 7 8      8 6 7
+    std::rotate(terrains_.begin(), terrains_.begin() + 2,
+                terrains_.begin() + 3);
+    std::rotate(terrains_.begin() + 3, terrains_.begin() + 5,
+                terrains_.begin() + 6);
+    std::rotate(terrains_.begin() + 6, terrains_.begin() + 8, terrains_.end());
+
+    // Update first column
+    terrains_[0]->updateCoordinates(currentTileX + 1, currentTileY - 1);
+    terrains_[3]->updateCoordinates(currentTileX, currentTileY - 1);
+    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileY - 1);
+  }
+
+  // Moving east
+  if (diffY > 0) {
+    std::cout << "EAST";
+    // Move last two columns left
+    // 0 1 2      1 2 0
+    // 3 4 5  ->  4 5 3
+    // 6 7 8      7 8 6
+    std::rotate(terrains_.begin(), terrains_.begin() + 1,
+                terrains_.begin() + 3);
+    std::rotate(terrains_.begin() + 3, terrains_.begin() + 4,
+                terrains_.begin() + 6);
+    std::rotate(terrains_.begin() + 6, terrains_.begin() + 7, terrains_.end());
+
+    // Update last column
+    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileY + 1);
+    terrains_[5]->updateCoordinates(currentTileX, currentTileY + 1);
+    terrains_[8]->updateCoordinates(currentTileX - 1, currentTileY + 1);
+  }
+  std::cout << " " << currentTileX << "," << currentTileY << std::endl;
 }
