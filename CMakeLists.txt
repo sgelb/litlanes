@@ -38,15 +38,21 @@ add_definitions(
   )
 
 set(SOURCES 
+  src/boundingbox.cpp
   src/camera.cpp
+  src/game.cpp
   src/main.cpp
+  src/quadtree.cpp
   src/shader.cpp
   src/terrain.cpp
   )
 
 set(HEADER
+  include/boundingbox.h
   include/camera.h
   include/constants.h
+  include/game.h
+  include/quadtree.h
   include/shader.h
   include/terrain.h
   )
@@ -60,21 +66,28 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 add_executable(${PROJECT_NAME} ${SOURCES} ${HEADER} ${SHADER})
 target_link_libraries(${PROJECT_NAME}	${ALL_LIBS})
 
-SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$")
-
 # Test library and executables
 
 if (BUILD_TESTS)
 
   set(TESTS
-    test/test.cpp
+    test/testBoundingbox.cpp
+    test/testQuadtree.cpp
+    test/testTerrain.cpp
     )
 
   set(TEST_SOURCES
+    src/boundingbox.cpp
+    src/quadtree.cpp
+    src/shader.cpp
     src/terrain.cpp
     )
 
   set(TEST_HEADER
+    include/boundingbox.h
+    include/constants.h
+    include/quadtree.h
+    include/shader.h
     include/terrain.h
     )
 

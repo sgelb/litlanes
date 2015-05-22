@@ -8,3 +8,19 @@
 
 - lod with quadtree: ulrich-paper & http://chrisbrough.com
 - gui -> https://github.com/ocornut/imgui
+- (very) simple texture
+- shadows
+
+
+## Next steps
+
+- infinite terrain/tiles generation: use GLint64 for coords
+- show grid of tiles?
+- add basic lighting: ambient + directional
+- add basic texture
+- refactor terrain: 
+    update terrain indices()
+- lod
+- hud for fps, camera position and other infos
+- gui
+- coordinate system hud
