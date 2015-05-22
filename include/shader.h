@@ -11,12 +11,12 @@
  */
 class Shader {
  public:
-   /**
-    * @brief Load and compile shader files
-    *
-    * @param vertexSourcePath Path to vertex shader file
-    * @param fragmentSourcePath Path to fragment shader file
-    */
+  /**
+   * @brief Load and compile shader files
+   *
+   * @param vertexSourcePath Path to vertex shader file
+   * @param fragmentSourcePath Path to fragment shader file
+   */
   Shader(const GLchar *vertexSourcePath, const GLchar *fragmentSourcePath);
   /**
    * @brief Use this shader program in OpenGL

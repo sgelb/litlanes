@@ -14,9 +14,9 @@
  */
 class Camera {
  public:
-   /**
-    * @brief Define possible directions for camera movement
-    */
+  /**
+   * @brief Define possible directions for camera movement
+   */
   enum CameraMovement { FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN };
 
   /**
@@ -47,7 +47,7 @@ class Camera {
   void processKeyboard(CameraMovement direction, GLfloat deltaTime);
 
   /**
-   * @brief Process mouse input for viewing direction and calculate new yaw and 
+   * @brief Process mouse input for viewing direction and calculate new yaw and
    * pitch values
    *
    * @param xoffset x-offset of mouse
@@ -56,6 +56,7 @@ class Camera {
   void processMouseMovement(GLfloat xoffset, GLfloat yoffset);
 
   glm::vec3 getPosition();
+
  private:
   // Camera Attributes
   glm::vec3 position_;

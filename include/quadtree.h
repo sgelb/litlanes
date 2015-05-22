@@ -15,13 +15,13 @@
  */
 class Quadtree {
  public:
-   /**
-    * @brief Constructor 
-    *
-    * @param level Current level of detail
-    * @param startpoint Index of top-left point of quadtree in vertex indices 
-    * array
-    */
+  /**
+   * @brief Constructor
+   *
+   * @param level Current level of detail
+   * @param startpoint Index of top-left point of quadtree in vertex indices
+   * array
+   */
   explicit Quadtree(const int &level = 0, const int &startpoint = 0);
 
   /**
@@ -39,7 +39,6 @@ class Quadtree {
    * @return vertex indices of provided level of detail
    */
   std::vector<GLuint> getIndicesOfLevel(const int &lod);
-
 
  private:
   int level_;

@@ -9,14 +9,13 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
-#include <glm/gtx/fast_square_root.hpp>  // fastNormalize
+#include <glm/gtx/fast_square_root.hpp> // fastNormalize
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "constants.h"
 #include "quadtree.h"
 #include "shader.h"
-
 
 /**
  * @brief Vertex defined by position and color
@@ -26,19 +25,18 @@ struct Vertex {
   glm::vec3 color;
 };
 
-
 /**
  * @brief TODO: what is this class?
  */
 class Terrain {
  public:
-   /**
-    * @brief Construct terrain tile of provided size
-    *
-    * @param tileWidth edge length of terrain tile
-    */
-  explicit Terrain(const int &x, const int &z, 
-      const GLuint &tileWidth = Constants::TileWidth);
+  /**
+   * @brief Construct terrain tile of provided size
+   *
+   * @param tileWidth edge length of terrain tile
+   */
+  explicit Terrain(const int &x, const int &z,
+                   const GLuint &tileWidth = Constants::TileWidth);
   /**
    * @brief Set up shader and opengl buffers
    */
@@ -71,7 +69,7 @@ class Terrain {
   /**
    * @brief Update coordinates and recalculate values
    *
-   * @param x 
+   * @param x
    * @param z
    */
   void updateCoordinates(const int &x, const int &z);
@@ -90,8 +88,6 @@ class Terrain {
    */
   std::vector<GLuint> getIndices();
 
-
-
  private:
   using modulePtr = std::unique_ptr<noise::module::Module>;
 
@@ -103,9 +99,9 @@ class Terrain {
   std::vector<GLuint> indices_;
   std::unique_ptr<Quadtree> quadtree_;
   GLuint verticesCount_;
-  GLuint VAO_;  // Vertex Array Object
-  GLuint VBO_;  // Vertex Buffer Object
-  GLuint EBO_;  // Element Buffer Object
+  GLuint VAO_; // Vertex Array Object
+  GLuint VBO_; // Vertex Buffer Object
+  GLuint EBO_; // Element Buffer Object
   GLint objectColorLoc_;
   GLint lightColorLoc_;
   GLint lightPosLoc_;

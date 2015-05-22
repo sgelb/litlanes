@@ -42,9 +42,6 @@ int Game::run() {
     getCurrentPosition();
     updateTiles();
 
-    // Print camera position
-    /* printCameraPosition(); */
-
     // Clear the colorbuffer
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -81,12 +78,6 @@ void Game::printFps() {
     frameCount_ = 0;
     lastTime_ = 0.0f;
   }
-}
-
-void Game::printCameraPosition() {
-  std::cout << "Tile " << std::floor(currentPos_.x / Constants::TileWidth)
-            << ", " << std::floor(currentPos_.y / Constants::TileWidth)
-            << std::endl;
 }
 
 void Game::do_movement(const GLfloat &deltaTime) {
@@ -248,11 +239,11 @@ void Game::updateTiles() {
   // |6 7 8
   // z
 
-  std::cout << diffX << "," << diffY << std::endl;
+  // Print current tile
+  printCurrentTile();
 
   // Moving north
   if (diffX > 0) {
-    std::cout << "NORTH";
     // Move first two rows down
     // 0 1 2      6 7 8
     // 3 4 5  ->  0 1 2
@@ -267,7 +258,6 @@ void Game::updateTiles() {
 
   // Moving south
   if (diffX < 0) {
-    std::cout << "SOUTH";
     // Move last two rows up
     // 0 1 2      3 4 5
     // 3 4 5  ->  6 7 8
@@ -282,7 +272,6 @@ void Game::updateTiles() {
 
   // Moving west
   if (diffY < 0) {
-    std::cout << "WEST";
     // Move first two columns right
     // 0 1 2      2 0 1
     // 3 4 5  ->  5 3 4
@@ -301,7 +290,6 @@ void Game::updateTiles() {
 
   // Moving east
   if (diffY > 0) {
-    std::cout << "EAST";
     // Move last two columns left
     // 0 1 2      1 2 0
     // 3 4 5  ->  4 5 3
@@ -317,5 +305,10 @@ void Game::updateTiles() {
     terrains_[5]->updateCoordinates(currentTileX, currentTileY + 1);
     terrains_[8]->updateCoordinates(currentTileX - 1, currentTileY + 1);
   }
-  std::cout << " " << currentTileX << "," << currentTileY << std::endl;
 }
+
+void Game::printCurrentTile() {
+  std::cout << std::floor(currentPos_.x / Constants::TileWidth) << ", "
+            << std::floor(currentPos_.y / Constants::TileWidth) << std::endl;
+}
+

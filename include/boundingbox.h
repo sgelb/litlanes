@@ -7,13 +7,13 @@
  */
 class BoundingBox {
  public:
-   /**
-    * @brief Constructor
-    *
-    * @param center center of AABB
-    * @param extents length from center to faces which is half the length of an 
-    * cube edge
-    */
+  /**
+   * @brief Constructor
+   *
+   * @param center center of AABB
+   * @param extents length from center to faces which is half the length of an
+   * cube edge
+   */
   BoundingBox(glm::vec3 center, float extents);
 
   /**
@@ -25,7 +25,7 @@ class BoundingBox {
    * @return \c True if sphere intersects with bounding box, \c False otherwise
    */
   bool intersectsWithSphere(const glm::vec3 &spherePosition,
-      const float &sphereRadius);
+                            const float &sphereRadius);
 
  private:
   glm::vec3 center_;
