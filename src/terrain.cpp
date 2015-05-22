@@ -128,20 +128,25 @@ void Terrain::createVertices() {
   size_t width = tileWidth_ + 1;
   GLfloat y;
 
-  for (size_t z = 0; z < width; z++) {
-    for (size_t x = 0; x < width; x++) {
+  // z and x are of type (signed) int instead of (unsigned) size_t, so we don't
+  // have to cast back to signed before calculating coordinates.
+  for (int z = 0; z < width; z++) {
+    for (int x = 0; x < width; x++) {
       idx = z * width + x;
+
+      int worldX = xOffset_ + x;
+      int worldZ = zOffset_ + z;
 
       // use world space coordinates of x and z (mapped to [-1, 1]) to create
       // height generated with noise algorithm
-      y = noise_->GetValue(mapToInterval(xOffset_ + x), 0.0f,
-                           mapToInterval(zOffset_ + z));
+      // FIXME: use y to add seed
+      y = noise_->GetValue(mapToInterval(worldX), 0.0f, mapToInterval(worldZ));
 
       // set position
       vertices_[idx].position =
-          glm::vec3(static_cast<GLfloat>(x + xOffset_),
+          glm::vec3(static_cast<GLfloat>(worldX),
                     static_cast<GLfloat>(Constants::MaxMeshHeight * y),
-                    static_cast<GLfloat>(z + zOffset_));
+                    static_cast<GLfloat>(worldZ));
 
       // set color
       vertices_[idx].color = colorFromHeight(y);
@@ -204,7 +209,7 @@ std::vector<GLuint> Terrain::getIndices() {
 }
 
 GLfloat Terrain::mapToInterval(const GLfloat &input) {
-  // FIXME: actual input is [LLINT_MIN, LLINT_MAX], input should be of type GLint64
+  // FIXME: input can be negative, so we have to map from [INT_MIN, INT_MAX]
   // map input from [0, Constants::TileWidth] to [-1, 1]
   return 2 * (input / Constants::TileWidth) - 1;
 }
