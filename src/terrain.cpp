@@ -194,6 +194,9 @@ void Terrain::setAlgorithm(const int &algorithm) {
   case Constants::RidgedMulti:
     noise_ = modulePtr(new noise::module::RidgedMulti);
     break;
+  case Constants::Billow:
+    noise_ = modulePtr(new noise::module::Billow);
+    break;
   default:
     noise_ = modulePtr(new noise::module::Perlin);
   }
@@ -217,6 +220,13 @@ GLfloat Terrain::mapToInterval(const GLfloat &input) {
 void Terrain::updateCoordinates(const int &x, const int &z) {
   xOffset_ = x * Constants::TileWidth;
   zOffset_ = z * Constants::TileWidth;
+  createVertices();
+  createIndices();
+  setupBuffers();
+}
+
+void Terrain::updateAlgorithm(const int &algorithm) {
+  setAlgorithm(algorithm);
   createVertices();
   createIndices();
   setupBuffers();

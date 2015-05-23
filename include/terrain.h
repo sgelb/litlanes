@@ -43,13 +43,6 @@ class Terrain {
   void setup();
 
   /**
-   * @brief Set algorithm for heightmap generation
-   *
-   * @param algorithm TODO: define in Constants
-   */
-  void setAlgorithm(const int &algorithm);
-
-  /**
    * @brief Update terrain before rendering
    */
   void update(const GLfloat &deltaTime);
@@ -88,6 +81,13 @@ class Terrain {
    */
   std::vector<GLuint> getIndices();
 
+  /**
+   * @brief Set new algorithm and update vertices
+   *
+   * @param algorithm
+   */
+  void updateAlgorithm(const int &algorithm);
+
  private:
   using modulePtr = std::unique_ptr<noise::module::Module>;
 
@@ -109,6 +109,7 @@ class Terrain {
   int zOffset_;
   glm::vec3 lightPos_;
 
+  void setAlgorithm(const int &algorithm);
   void createVertices();
   void createIndices();
   void setupShader();

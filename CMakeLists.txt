@@ -2,6 +2,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (litlanes)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+SET(IMGUI "external/imgui-1.38/" CACHE PATH "Path to imgui")
 
 # Options. Turn on/off with 'cmake -Dmyvarname=ON/OFF' 
 
@@ -23,6 +24,7 @@ include_directories(
   external/glm-0.9.6.3/
   external/glew-1.12.0/include/
   external/libnoise-1.0.0/include
+  ${IMGUI}
   include
   )
 
@@ -45,6 +47,8 @@ set(SOURCES
   src/quadtree.cpp
   src/shader.cpp
   src/terrain.cpp
+  src/imgui_impl_glfw_gl3.cpp
+  ${IMGUI}/imgui.cpp
   )
 
 set(HEADER
@@ -55,6 +59,12 @@ set(HEADER
   include/quadtree.h
   include/shader.h
   include/terrain.h
+  include/imgui_impl_glfw_gl3.h
+  ${IMGUI}/imgui.h
+  ${IMGUI}/imconfig.h
+  ${IMGUI}/stb_rect_pack.h
+  ${IMGUI}/stb_textedit.h
+  ${IMGUI}/stb_truetype.h
   )
 
 set(SHADER

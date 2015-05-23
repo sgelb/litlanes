@@ -24,18 +24,81 @@ int Game::run() {
   lastTime_ = 0.0f;  // Time since last fps-"second"
   frameCount_ = 0;
 
+  ImGui_ImplGlfwGL3_Init(window_, false);
+  guiOpen_ = true;
+  int e = 0;
+
   // Game loop
   while (!glfwWindowShouldClose(window_)) {
     // Calculate deltatime of current frame
     GLfloat currentTime = glfwGetTime();
     deltaTime_ = currentTime - lastFrame_;
     lastFrame_ = currentTime;
-
-    // Print fps on stdout
-    /* printFps(); */
-
-    // Check for events and trigger callbacks
+ 
+    // Check for events
     glfwPollEvents();
+
+    // GUI
+    if (guiOpen_) {
+      ImGui_ImplGlfwGL3_NewFrame();
+      ImGui::BeginPopup(&guiOpen_);
+
+      // Style
+      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+      // Position
+      ImGui::SetWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+
+      // FPS
+      ImGui::Text("Avg %.3f ms/frame (%.1f FPS)",
+          1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+      // Current tile
+      int xTile = std::floor(currentPos_.x / Constants::TileWidth);
+      int zTile = std::floor(currentPos_.y / Constants::TileWidth);
+      ImGui::Text("Current tile: %i,%i", xTile, zTile);
+
+      // Keys
+      if (ImGui::CollapsingHeader("Keys")) {
+        ImGui::BulletText("TAB toggles this window");
+        ImGui::BulletText("Move around with A, S, D, W, E and Q");
+        ImGui::BulletText("Use mouse to look around");
+      }
+
+      // Algorithm
+      if (ImGui::CollapsingHeader("Algorithms")) {
+        // TODO: change algorithm
+        // TODO: show algorithm-specific options
+        if (ImGui::RadioButton("Perlin Noise", &e, Constants::Perlin)) {
+          changeTerrainAlgorithm(Constants::Perlin);
+        };
+        if (ImGui::RadioButton("Ridged-Multifractal Noise", &e,
+              Constants::RidgedMulti)) {
+          changeTerrainAlgorithm(Constants::RidgedMulti);
+        };
+        if (ImGui::RadioButton("Billow", &e, Constants::Billow)) {
+          changeTerrainAlgorithm(Constants::Billow);
+        };
+        if (ImGui::RadioButton("Diamond-Square", &e, Constants::DiamondSquare)) {
+          changeTerrainAlgorithm(Constants::DiamondSquare);
+        };
+        if (ImGui::RadioButton("Random", &e, Constants::Random)) {
+          changeTerrainAlgorithm(Constants::Random);
+        };
+      }
+
+      // TODO:
+      // - Simplex Algo
+      //
+      // - tileSize
+      // - wireframe
+      // - coloring options
+      // - GoTo tile
+
+      ImGui::EndPopup();
+    }
+
+    // Move
     do_movement(deltaTime_);
 
     // update camera position and create new tiles if neccessary
@@ -43,7 +106,7 @@ int Game::run() {
     updateTiles();
 
     // Clear the colorbuffer
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update  and render terrains
@@ -52,9 +115,18 @@ int Game::run() {
       terrains_[idx]->render(camera_.getViewMatrix());
     }
 
+    // Render GUI
+    if (guiOpen_) {
+      ImGui::Render();
+    }
+
     // Swap the screen buffers
     glfwSwapBuffers(window_);
+
   }
+
+  // Clean up imgui
+  ImGui_ImplGlfwGL3_Shutdown();
 
   // Clean up terrain
   for (size_t idx = 0; idx < terrains_.size(); idx++) {
@@ -65,19 +137,6 @@ int Game::run() {
   glfwDestroyWindow(window_);
   glfwTerminate();
   return 0;
-}
-
-void Game::printFps() {
-  // framerate count
-  frameCount_++;
-  lastTime_ += deltaTime_;
-
-  if (lastTime_ >= 1.0f) {
-    std::cout << frameCount_ << " fps, " << (1000.0f / frameCount_)
-              << "ms/frame" << std::endl;
-    frameCount_ = 0;
-    lastTime_ = 0.0f;
-  }
 }
 
 void Game::do_movement(const GLfloat &deltaTime) {
@@ -100,22 +159,35 @@ void Game::do_movement(const GLfloat &deltaTime) {
   if (keys_[GLFW_KEY_Q]) {
     camera_.processKeyboard(Camera::DOWN, deltaTime);
   }
+  /* if (keys_[GLFW_KEY_TAB]) { */
+  /*   guiOpen_ = !guiOpen_; */
+  /* } */
   if (keys_[GLFW_KEY_X]) {
+    toggleWireframe();
+  }
+}
+
+void Game::toggleWireframe() {
     fillmode_ = (fillmode_ == GL_FILL) ? GL_LINE : GL_FILL;
     glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
-  }
 }
 
 // Is called whenever a key is pressed/released via GLFW
 void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
                         int mode) {
 
-  Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
-
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
   }
 
+  Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
+
+  // set commands
+  if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+    game->toggleGui();
+  }
+
+  // set movement keys. 
   if (key >= 0 && key < 1024) {
     if (action == GLFW_PRESS) {
       game->keys_[key] = true;
@@ -129,6 +201,8 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   static bool firstMouse = true;
   static GLfloat lastX;
   static GLfloat lastY;
+
+  if (ImGui::GetIO().WantCaptureMouse) return;
 
   Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
 
@@ -167,6 +241,7 @@ int Game::initializeGlfw() {
   glfwSetWindowUserPointer(window_, this);
   glfwSetKeyCallback(window_, Game::key_callback);
   glfwSetCursorPosCallback(window_, Game::mouse_callback);
+  glfwSetMouseButtonCallback(window_, ImGui_ImplGlfwGL3_MouseButtonCallback);
 
   // GLFW Options
   glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -213,6 +288,7 @@ void Game::getCurrentPosition() {
 }
 
 void Game::updateTiles() {
+  // FIXME: move out of Game
   int currentTileX = std::floor(currentPos_.x / Constants::TileWidth);
   int currentTileY = std::floor(currentPos_.y / Constants::TileWidth);
   int diffX = currentTileX - std::floor(previousPos_.x / Constants::TileWidth);
@@ -312,3 +388,12 @@ void Game::printCurrentTile() {
             << std::floor(currentPos_.y / Constants::TileWidth) << std::endl;
 }
 
+void Game::toggleGui() {
+  guiOpen_ = !guiOpen_; 
+}
+
+void Game::changeTerrainAlgorithm(const int &algorithm) {
+    for (size_t idx = 0; idx < terrains_.size(); idx++) {
+      terrains_[idx]->updateAlgorithm(algorithm);
+    }
+}

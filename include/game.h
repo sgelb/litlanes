@@ -10,6 +10,8 @@
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
+#include <imgui.h>
+#include <imgui_impl_glfw_gl3.h>
 
 #include "terrain.h"
 #include "constants.h"
@@ -35,6 +37,7 @@ class Game {
   Camera camera_;
   GLFWwindow *window_;
   bool keys_[1024];
+  bool guiOpen_;
   GLfloat deltaTime_;
   GLfloat lastFrame_;
   GLfloat lastTime_;
@@ -49,10 +52,12 @@ class Game {
   void initializeGl();
   void initializeTiles();
   void updateTiles();
-  void printFps();
+  void toggleGui();
+  void toggleWireframe();
   void printCurrentTile();
   void getCurrentPosition();
   void do_movement(const GLfloat &deltaTime);
+  void changeTerrainAlgorithm(const int &algorithm);
   static void key_callback(GLFWwindow *window, int key, int scancode,
                            int action, int mode);
   static void mouse_callback(GLFWwindow *window, double xpos, double ypos);

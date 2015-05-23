@@ -53,3 +53,7 @@ target_link_libraries(GLEW
 
 ### LIBNOISE ###
 add_subdirectory(libnoise-1.0.0)
+
+
+### IMGUI
+include_directories(imgui-1.38)
