@@ -115,6 +115,10 @@ static void ImGui_ImplGlfwGL3_RenderDrawLists(ImDrawList **const cmd_lists,
   glUseProgram(last_program);
   glDisable(GL_SCISSOR_TEST);
   glBindTexture(GL_TEXTURE_2D, last_texture);
+
+  // re-enable default states for depth and culling
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
 }
 
 static const char *ImGui_ImplGlfwGL3_GetClipboardText() {
