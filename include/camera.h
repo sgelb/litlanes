@@ -72,7 +72,6 @@ class Camera {
   // Camera options
   GLfloat movementSpeed_;
   GLfloat mouseSensitivity_;
-  GLfloat zoom_;
 
   // Calculates the front vector from the Camera's (updated) Eular Angles
   void updateCameraVectors();

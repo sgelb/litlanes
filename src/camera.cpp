@@ -3,8 +3,7 @@
 Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch)
     : front_(glm::vec3(0.0f, 0.0f, -1.0f)),
       movementSpeed_(Constants::Speed),
-      mouseSensitivity_(Constants::Sensitivty),
-      zoom_(Constants::Zoom) {
+      mouseSensitivity_(Constants::Sensitivty) {
   position_ = position;
   worldUp_ = up;
   yaw_ = yaw;

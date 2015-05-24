@@ -116,20 +116,20 @@ void Terrain::createVertices() {
     /
   z/
 
-  the polygon mesh consists of vertices forming a large square from (0, y, 0) to
+  the polygon mesh consists of vertices forming a square from (0, y, 0) to
   (width, y, width) with width*width subtiles. each subtile is split in two
   triangles from top left to bottom right.
 
   */
 
-  // (tileWidth + 1)^2 vertices
+  // there are (tileWidth + 1)^2 vertices
   vertices_ = std::vector<Vertex>(verticesCount_);
   int idx = 0;
   size_t width = tileWidth_ + 1;
   GLfloat y;
 
-  // z and x are of type (signed) int instead of (unsigned) size_t, so we don't
-  // have to cast back to signed before calculating coordinates.
+  // type of z and x is "signed int" instead of "unsigned size_t", so we don't
+  // have to cast back to a signed type before calculating coordinates.
   for (int z = 0; z < width; z++) {
     for (int x = 0; x < width; x++) {
       idx = z * width + x;
@@ -139,7 +139,7 @@ void Terrain::createVertices() {
 
       // use world space coordinates of x and z (mapped to [-1, 1]) to create
       // height generated with noise algorithm
-      // FIXME: use y to add seed
+      // y can be used as a seed
       y = noise_->GetValue(mapToInterval(worldX), 0.0f, mapToInterval(worldZ));
 
       // set position

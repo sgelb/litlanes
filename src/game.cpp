@@ -1,12 +1,14 @@
 #include "game.h"
 
 Game::Game() : keys_{false}, fillmode_{GL_FILL} {
-  camera_ = Camera(
-      glm::vec3(Constants::TileWidth / 2, 60.0f, Constants::TileWidth / 2));
+  // position camera in center of 3*3 tiles
+  GLfloat coord = 3*Constants::TileWidth / 2;
+  currentPos_ = glm::vec3(coord, 0.0f, coord);
+  previousPos_ = currentPos_;
+  camera_ = Camera(glm::vec3(currentPos_.x, 60.0f, currentPos_.z));
 }
 
 int Game::run() {
-
   // Initalize
   if (!initializeGlfw()) {
     return 1;
@@ -15,16 +17,15 @@ int Game::run() {
     return 2;
   }
   initializeGl();
-
   initializeTiles();
+  ImGui_ImplGlfwGL3_Init(window_, false);
 
-  // Deltatime
-  deltaTime_ = 0.0f; // Time between current frame and last frame
-  lastFrame_ = 0.0f; // Time of last frame
+  deltaTime_ = 0.0f; // Time between current and last frame
+  lastFrame_ = 0.0f; // Time at last frame
   lastTime_ = 0.0f;  // Time since last fps-"second"
   frameCount_ = 0;
 
-  ImGui_ImplGlfwGL3_Init(window_, false);
+  // is GUI open?
   guiOpen_ = true;
   int e = 0;
 
@@ -39,6 +40,7 @@ int Game::run() {
     glfwPollEvents();
 
     // GUI
+    // TODO: refactor/move
     if (guiOpen_) {
       ImGui_ImplGlfwGL3_NewFrame();
       ImGui::BeginPopup(&guiOpen_);
@@ -55,7 +57,7 @@ int Game::run() {
 
       // Current tile
       int xTile = std::floor(currentPos_.x / Constants::TileWidth);
-      int zTile = std::floor(currentPos_.y / Constants::TileWidth);
+      int zTile = std::floor(currentPos_.z / Constants::TileWidth);
       ImGui::Text("Current tile: %i,%i", xTile, zTile);
 
       // Keys
@@ -86,11 +88,8 @@ int Game::run() {
           changeTerrainAlgorithm(Constants::Random);
         };
       }
-
       // TODO:
       // - Simplex Algo
-      //
-      // - tileSize
       // - wireframe
       // - coloring options
       // - GoTo tile
@@ -105,11 +104,11 @@ int Game::run() {
     getCurrentPosition();
     updateTiles();
 
-    // Clear the colorbuffer
+    // Clear color- and depth buffer
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Update  and render terrains
+    // Update and render terrains
     for (size_t idx = 0; idx < terrains_.size(); idx++) {
       terrains_[idx]->update(deltaTime_);
       terrains_[idx]->render(camera_.getViewMatrix());
@@ -117,7 +116,10 @@ int Game::run() {
 
     // Render GUI
     if (guiOpen_) {
+      // ignore wireframe setting for gui
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       ImGui::Render();
+      glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
     }
 
     // Swap the screen buffers
@@ -159,17 +161,6 @@ void Game::do_movement(const GLfloat &deltaTime) {
   if (keys_[GLFW_KEY_Q]) {
     camera_.processKeyboard(Camera::DOWN, deltaTime);
   }
-  /* if (keys_[GLFW_KEY_TAB]) { */
-  /*   guiOpen_ = !guiOpen_; */
-  /* } */
-  if (keys_[GLFW_KEY_X]) {
-    toggleWireframe();
-  }
-}
-
-void Game::toggleWireframe() {
-    fillmode_ = (fillmode_ == GL_FILL) ? GL_LINE : GL_FILL;
-    glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
 }
 
 // Is called whenever a key is pressed/released via GLFW
@@ -185,6 +176,9 @@ void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
   // set commands
   if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
     game->toggleGui();
+  }
+  if (key == GLFW_KEY_X && action == GLFW_PRESS) {
+    game->toggleWireframe();
   }
 
   // set movement keys. 
@@ -265,16 +259,19 @@ void Game::initializeGl() {
 }
 
 void Game::initializeTiles() {
-
+  // create first nine tiles, from (0,0) to (2,2)
+  //
+  // order of for-loops matters
   // +----- x
   // |0 1 2
   // |3 4 5
   // |6 7 8
   // z
 
-  for (size_t z = 0; z < 3; z++) {
-    for (size_t x = 0; x < 3; x++) {
-      std::shared_ptr<Terrain> terrain(new Terrain(x, z));
+  for (int z = 0; z < 3; z++) {
+    for (int x = 0; x < 3; x++) {
+      std::cout << "Start: " << x << "," << z << std::endl;
+      std::unique_ptr<Terrain> terrain(new Terrain(x, z));
       terrain->setup();
       terrains_.push_back(std::move(terrain));
     }
@@ -284,42 +281,47 @@ void Game::initializeTiles() {
 void Game::getCurrentPosition() {
   previousPos_ = currentPos_;
   currentPos_.x = camera_.getPosition().x;
-  currentPos_.y = camera_.getPosition().z;
+  currentPos_.z = camera_.getPosition().z;
 }
 
 void Game::updateTiles() {
   // FIXME: move out of Game
-  int currentTileX = std::floor(currentPos_.x / Constants::TileWidth);
-  int currentTileY = std::floor(currentPos_.y / Constants::TileWidth);
-  int diffX = currentTileX - std::floor(previousPos_.x / Constants::TileWidth);
-  int diffY = currentTileY - std::floor(previousPos_.y / Constants::TileWidth);
-
-  // -------+-------+--------
-  // (1,-1) | (1,0) |  (1,1)      x > 0
-  // -------+-------+--------
-  // (0,-1) | (0,0) |  (0,1)      x = 0
-  // -------+-------+--------
-  // (-1,-1)| (-1,0)| (-1,-1)     x < 0
-  // -------+-------+--------
   //
-  //  y < 0   y = 0    y > 0
+  int currentTileX = std::floor(currentPos_.x / Constants::TileWidth);
+  int currentTileZ = std::floor(currentPos_.z / Constants::TileWidth);
+  int diffX = currentTileX - std::floor(previousPos_.x / Constants::TileWidth);
+  int diffZ = currentTileZ - std::floor(previousPos_.z / Constants::TileWidth);
 
-  if (diffX == 0 and diffY == 0) {
-    return; // we are still in middle tile, nothing to do
-  }
 
-  // std::shared_ptr<Terrain> terrain_:
+  // order of tiles in std::shared_ptr<Terrain> terrain_:
   // +----- x
   // |0 1 2
   // |3 4 5
   // |6 7 8
   // z
+  //
+  // tile coordinates relative to middle tile:
+  // ------+------+-----
+  // -1,-1 | 0,-1 | 1,-1   z = -1
+  // ------+------+-----
+  // -1,0  | 0,0  | 1,0    z = 0
+  // ------+------+-----
+  // -1,1  | 0,1  | 1,1    z = 1
+  // ------+------+-----
+  // x = -1 x = 0  x = 1
+
+
+  if (diffX == 0 && diffZ == 0) {
+    return; // we are still in middle tile, nothing to do
+  }
+
+  std::cout << "Diff " << diffX << "," << diffZ << std::endl;
 
   // Print current tile
-  printCurrentTile();
+  /* printCurrentTile(); */
 
-  // Moving north
-  if (diffX > 0) {
+  // Moving -Z or North
+  if (diffZ < 0) {
     // Move first two rows down
     // 0 1 2      6 7 8
     // 3 4 5  ->  0 1 2
@@ -327,13 +329,13 @@ void Game::updateTiles() {
     std::rotate(terrains_.begin(), terrains_.begin() + 6, terrains_.end());
 
     // Update first row
-    terrains_[0]->updateCoordinates(currentTileX + 1, currentTileY - 1);
-    terrains_[1]->updateCoordinates(currentTileX + 1, currentTileY);
-    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileY + 1);
+    terrains_[0]->updateCoordinates(currentTileX - 1, currentTileZ - 1);
+    terrains_[1]->updateCoordinates(currentTileX, currentTileZ - 1);
+    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileZ - 1);
   }
 
-  // Moving south
-  if (diffX < 0) {
+  // Moving Z or South
+  if (diffZ > 0) {
     // Move last two rows up
     // 0 1 2      3 4 5
     // 3 4 5  ->  6 7 8
@@ -341,13 +343,13 @@ void Game::updateTiles() {
     std::rotate(terrains_.begin(), terrains_.begin() + 3, terrains_.end());
 
     // Update last row
-    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileY - 1);
-    terrains_[7]->updateCoordinates(currentTileX - 1, currentTileY);
-    terrains_[8]->updateCoordinates(currentTileX - 1, currentTileY + 1);
+    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileZ + 1);
+    terrains_[7]->updateCoordinates(currentTileX, currentTileZ + 1);
+    terrains_[8]->updateCoordinates(currentTileX + 1, currentTileZ + 1);
   }
 
-  // Moving west
-  if (diffY < 0) {
+  // Moving -X or West
+  if (diffX < 0) {
     // Move first two columns right
     // 0 1 2      2 0 1
     // 3 4 5  ->  5 3 4
@@ -359,13 +361,13 @@ void Game::updateTiles() {
     std::rotate(terrains_.begin() + 6, terrains_.begin() + 8, terrains_.end());
 
     // Update first column
-    terrains_[0]->updateCoordinates(currentTileX + 1, currentTileY - 1);
-    terrains_[3]->updateCoordinates(currentTileX, currentTileY - 1);
-    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileY - 1);
+    terrains_[0]->updateCoordinates(currentTileX - 1, currentTileZ - 1);
+    terrains_[3]->updateCoordinates(currentTileX - 1, currentTileZ);
+    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileZ + 1);
   }
 
-  // Moving east
-  if (diffY > 0) {
+  // Moving X or East
+  if (diffX > 0) {
     // Move last two columns left
     // 0 1 2      1 2 0
     // 3 4 5  ->  4 5 3
@@ -377,19 +379,25 @@ void Game::updateTiles() {
     std::rotate(terrains_.begin() + 6, terrains_.begin() + 7, terrains_.end());
 
     // Update last column
-    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileY + 1);
-    terrains_[5]->updateCoordinates(currentTileX, currentTileY + 1);
-    terrains_[8]->updateCoordinates(currentTileX - 1, currentTileY + 1);
+    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileZ - 1);
+    terrains_[5]->updateCoordinates(currentTileX + 1, currentTileZ);
+    terrains_[8]->updateCoordinates(currentTileX + 1, currentTileZ + 1);
   }
 }
 
 void Game::printCurrentTile() {
   std::cout << std::floor(currentPos_.x / Constants::TileWidth) << ", "
-            << std::floor(currentPos_.y / Constants::TileWidth) << std::endl;
+            << std::floor(currentPos_.z / Constants::TileWidth) << std::endl;
 }
 
 void Game::toggleGui() {
   guiOpen_ = !guiOpen_; 
+}
+
+void Game::toggleWireframe() {
+  // TODO: show wireframe in solid color?
+  fillmode_ = (fillmode_ == GL_FILL) ? GL_LINE : GL_FILL;
+  glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
 }
 
 void Game::changeTerrainAlgorithm(const int &algorithm) {

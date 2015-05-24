@@ -43,9 +43,9 @@ class Game {
   GLfloat lastTime_;
   int frameCount_;
   GLenum fillmode_;
-  std::vector<std::shared_ptr<Terrain>> terrains_;
-  glm::vec2 previousPos_;
-  glm::vec2 currentPos_;
+  std::vector<std::unique_ptr<Terrain>> terrains_;
+  glm::vec3 previousPos_;
+  glm::vec3 currentPos_;
 
   int initializeGlfw();
   int initializeGlew();
