@@ -1,24 +1,24 @@
-#include "terrain.h"
+#include "tile.h"
 
-Terrain::Terrain(const int &x, const int &z, const GLuint &tileWidth)
+Tile::Tile(const int &x, const int &z, const GLuint &tileWidth)
     : tileWidth_(tileWidth),
       noise_(modulePtr(new noise::module::Perlin)),
       xOffset_(x * Constants::TileWidth),
       zOffset_(z * Constants::TileWidth) {
-  // initialize terrain
+  // initialize tile
   verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
   createVertices();
   createIndices();
 }
 
-void Terrain::setup() {
+void Tile::setup() {
   // setup OpenGl stuff. there must be an opengl context!
   setupShader();
   setupBuffers();
 }
 
-void Terrain::setupShader() {
+void Tile::setupShader() {
   // Build and compile our shader program
   // TODO: proper loading of shaders
   shader_ = std::unique_ptr<Shader>(
@@ -32,7 +32,7 @@ void Terrain::setupShader() {
   glUniform3f(lightPosLoc_, lightPos_.x, lightPos_.y, lightPos_.z);
 }
 
-void Terrain::setupBuffers() {
+void Tile::setupBuffers() {
   // Bind VAO first,
   glGenVertexArrays(1, &VAO_);
   glBindVertexArray(VAO_);
@@ -63,7 +63,7 @@ void Terrain::setupBuffers() {
   glBindVertexArray(0);
 }
 
-void Terrain::update(const GLfloat &deltaTime) {
+void Tile::update(const GLfloat &deltaTime) {
   glm::mat4 rotationMat(1);
   rotationMat =
       glm::rotate(rotationMat, deltaTime * 0.5f, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -71,7 +71,7 @@ void Terrain::update(const GLfloat &deltaTime) {
   glUniform3f(lightPosLoc_, lightPos_.x, lightPos_.y, lightPos_.z);
 }
 
-void Terrain::render(const glm::mat4 &view) {
+void Tile::render(const glm::mat4 &view) {
   // Projection
   glm::mat4 projection = glm::perspective(
       Constants::Zoom, static_cast<GLfloat>(Constants::WindowWidth) /
@@ -93,19 +93,19 @@ void Terrain::render(const glm::mat4 &view) {
   model = glm::translate(model, glm::vec3(-0.5f, 0.0f, -0.5f));
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
-  // Finally, draw terrain elements
+  // Finally, draw tile elements
   glBindVertexArray(VAO_);
   glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 }
 
-void Terrain::cleanup() {
+void Tile::cleanup() {
   // Properly de-allocate all resources once they've outlived their purpose
   glDeleteVertexArrays(1, &VAO_);
   glDeleteBuffers(1, &VBO_);
 }
 
-void Terrain::createVertices() {
+void Tile::createVertices() {
 
   /*
 
@@ -154,11 +154,11 @@ void Terrain::createVertices() {
   }
 }
 
-void Terrain::createIndices() {
+void Tile::createIndices() {
   indices_ = quadtree_->getIndicesOfLevel(Constants::MaximumLod);
 }
 
-glm::vec3 Terrain::colorFromHeight(const GLfloat &height) {
+glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
   // simplified color model with 5 "height zones"
 
   if (height > 0.9) {
@@ -186,7 +186,7 @@ glm::vec3 Terrain::colorFromHeight(const GLfloat &height) {
   return color;
 }
 
-void Terrain::setAlgorithm(const int &algorithm) {
+void Tile::setAlgorithm(const int &algorithm) {
   switch (algorithm) {
   case Constants::Perlin:
     noise_ = modulePtr(new noise::module::Perlin);
@@ -202,22 +202,22 @@ void Terrain::setAlgorithm(const int &algorithm) {
   }
 }
 
-std::vector<Vertex> Terrain::getVertices() {
+std::vector<Vertex> Tile::getVertices() {
   return vertices_;
 }
 
-std::vector<GLuint> Terrain::getIndices() {
+std::vector<GLuint> Tile::getIndices() {
   /* return quadtree_->getIndicesOfLevel(Constants::MaximumLod); */
   return indices_;
 }
 
-GLfloat Terrain::mapToInterval(const GLfloat &input) {
+GLfloat Tile::mapToInterval(const GLfloat &input) {
   // FIXME: input can be negative, so we have to map from [INT_MIN, INT_MAX]
   // map input from [0, Constants::TileWidth] to [-1, 1]
   return 2 * (input / Constants::TileWidth) - 1;
 }
 
-void Terrain::updateCoordinates(const int &x, const int &z) {
+void Tile::updateCoordinates(const int &x, const int &z) {
   xOffset_ = x * Constants::TileWidth;
   zOffset_ = z * Constants::TileWidth;
   createVertices();
@@ -225,7 +225,7 @@ void Terrain::updateCoordinates(const int &x, const int &z) {
   setupBuffers();
 }
 
-void Terrain::updateAlgorithm(const int &algorithm) {
+void Tile::updateAlgorithm(const int &algorithm) {
   setAlgorithm(algorithm);
   createVertices();
   createIndices();

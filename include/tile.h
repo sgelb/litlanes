@@ -28,14 +28,14 @@ struct Vertex {
 /**
  * @brief TODO: what is this class?
  */
-class Terrain {
+class Tile {
  public:
   /**
-   * @brief Construct terrain tile of provided size
+   * @brief Construct tile tile of provided size
    *
-   * @param tileWidth edge length of terrain tile
+   * @param tileWidth edge length of tile tile
    */
-  explicit Terrain(const int &x, const int &z,
+  explicit Tile(const int &x, const int &z,
                    const GLuint &tileWidth = Constants::TileWidth);
   /**
    * @brief Set up shader and opengl buffers
@@ -43,12 +43,12 @@ class Terrain {
   void setup();
 
   /**
-   * @brief Update terrain before rendering
+   * @brief Update tile before rendering
    */
   void update(const GLfloat &deltaTime);
 
   /**
-   * @brief Render terrain
+   * @brief Render tile
    *
    * @param view Viewing matrix for correct rendering
    */
@@ -68,14 +68,14 @@ class Terrain {
   void updateCoordinates(const int &x, const int &z);
 
   /**
-   * @brief Vertices of terrain mesh
+   * @brief Vertices of tile mesh
    *
    * @return vertices
    */
   std::vector<Vertex> getVertices();
 
   /**
-   * @brief Indices of vertices of terrain mesh
+   * @brief Indices of vertices of tile mesh
    *
    * @return indices
    */

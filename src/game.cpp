@@ -4,8 +4,8 @@ Game::Game() : keys_{false}, fillmode_{GL_FILL} {
   // position camera in center of 3*3 tiles
   GLfloat coord = 3*Constants::TileWidth / 2;
   currentPos_ = glm::vec3(coord, 0.0f, coord);
-  previousPos_ = currentPos_;
   camera_ = Camera(glm::vec3(currentPos_.x, 60.0f, currentPos_.z));
+  tileManager_ = TileManager();
 }
 
 int Game::run() {
@@ -17,7 +17,8 @@ int Game::run() {
     return 2;
   }
   initializeGl();
-  initializeTiles();
+  tileManager_.initialize(currentPos_);
+
   ImGui_ImplGlfwGL3_Init(window_, false);
 
   deltaTime_ = 0.0f; // Time between current and last frame
@@ -69,23 +70,22 @@ int Game::run() {
 
       // Algorithm
       if (ImGui::CollapsingHeader("Algorithms")) {
-        // TODO: change algorithm
         // TODO: show algorithm-specific options
         if (ImGui::RadioButton("Perlin Noise", &e, Constants::Perlin)) {
-          changeTerrainAlgorithm(Constants::Perlin);
+          tileManager_.changeTileAlgorithm(Constants::Perlin);
         };
         if (ImGui::RadioButton("Ridged-Multifractal Noise", &e,
               Constants::RidgedMulti)) {
-          changeTerrainAlgorithm(Constants::RidgedMulti);
+          tileManager_.changeTileAlgorithm(Constants::RidgedMulti);
         };
         if (ImGui::RadioButton("Billow", &e, Constants::Billow)) {
-          changeTerrainAlgorithm(Constants::Billow);
+          tileManager_.changeTileAlgorithm(Constants::Billow);
         };
         if (ImGui::RadioButton("Diamond-Square", &e, Constants::DiamondSquare)) {
-          changeTerrainAlgorithm(Constants::DiamondSquare);
+          tileManager_.changeTileAlgorithm(Constants::DiamondSquare);
         };
         if (ImGui::RadioButton("Random", &e, Constants::Random)) {
-          changeTerrainAlgorithm(Constants::Random);
+          tileManager_.changeTileAlgorithm(Constants::Random);
         };
       }
       // TODO:
@@ -100,19 +100,16 @@ int Game::run() {
     // Move
     do_movement(deltaTime_);
 
-    // update camera position and create new tiles if neccessary
+    // Get current camera position
     getCurrentPosition();
-    updateTiles();
 
     // Clear color- and depth buffer
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Update and render terrains
-    for (size_t idx = 0; idx < terrains_.size(); idx++) {
-      terrains_[idx]->update(deltaTime_);
-      terrains_[idx]->render(camera_.getViewMatrix());
-    }
+    // Update and render tiles
+    tileManager_.update(currentPos_);
+    tileManager_.renderAll(deltaTime_, camera_.getViewMatrix());
 
     // Render GUI
     if (guiOpen_) {
@@ -124,16 +121,13 @@ int Game::run() {
 
     // Swap the screen buffers
     glfwSwapBuffers(window_);
-
   }
 
   // Clean up imgui
   ImGui_ImplGlfwGL3_Shutdown();
 
-  // Clean up terrain
-  for (size_t idx = 0; idx < terrains_.size(); idx++) {
-    terrains_[idx]->cleanup();
-  }
+  // Clean up tiles
+  tileManager_.cleanUp();
 
   // Terminate GLFW, clearing any resources allocated by GLFW.
   glfwDestroyWindow(window_);
@@ -258,136 +252,10 @@ void Game::initializeGl() {
   glEnable(GL_CULL_FACE);
 }
 
-void Game::initializeTiles() {
-  // create first nine tiles, from (0,0) to (2,2)
-  //
-  // order of for-loops matters
-  // +----- x
-  // |0 1 2
-  // |3 4 5
-  // |6 7 8
-  // z
-
-  for (int z = 0; z < 3; z++) {
-    for (int x = 0; x < 3; x++) {
-      std::cout << "Start: " << x << "," << z << std::endl;
-      std::unique_ptr<Terrain> terrain(new Terrain(x, z));
-      terrain->setup();
-      terrains_.push_back(std::move(terrain));
-    }
-  }
-}
-
 void Game::getCurrentPosition() {
-  previousPos_ = currentPos_;
+  /* previousPos_ = currentPos_; */
   currentPos_.x = camera_.getPosition().x;
   currentPos_.z = camera_.getPosition().z;
-}
-
-void Game::updateTiles() {
-  // FIXME: move out of Game
-  //
-  int currentTileX = std::floor(currentPos_.x / Constants::TileWidth);
-  int currentTileZ = std::floor(currentPos_.z / Constants::TileWidth);
-  int diffX = currentTileX - std::floor(previousPos_.x / Constants::TileWidth);
-  int diffZ = currentTileZ - std::floor(previousPos_.z / Constants::TileWidth);
-
-
-  // order of tiles in std::shared_ptr<Terrain> terrain_:
-  // +----- x
-  // |0 1 2
-  // |3 4 5
-  // |6 7 8
-  // z
-  //
-  // tile coordinates relative to middle tile:
-  // ------+------+-----
-  // -1,-1 | 0,-1 | 1,-1   z = -1
-  // ------+------+-----
-  // -1,0  | 0,0  | 1,0    z = 0
-  // ------+------+-----
-  // -1,1  | 0,1  | 1,1    z = 1
-  // ------+------+-----
-  // x = -1 x = 0  x = 1
-
-
-  if (diffX == 0 && diffZ == 0) {
-    return; // we are still in middle tile, nothing to do
-  }
-
-  std::cout << "Diff " << diffX << "," << diffZ << std::endl;
-
-  // Print current tile
-  /* printCurrentTile(); */
-
-  // Moving -Z or North
-  if (diffZ < 0) {
-    // Move first two rows down
-    // 0 1 2      6 7 8
-    // 3 4 5  ->  0 1 2
-    // 6 7 8      3 4 5
-    std::rotate(terrains_.begin(), terrains_.begin() + 6, terrains_.end());
-
-    // Update first row
-    terrains_[0]->updateCoordinates(currentTileX - 1, currentTileZ - 1);
-    terrains_[1]->updateCoordinates(currentTileX, currentTileZ - 1);
-    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileZ - 1);
-  }
-
-  // Moving Z or South
-  if (diffZ > 0) {
-    // Move last two rows up
-    // 0 1 2      3 4 5
-    // 3 4 5  ->  6 7 8
-    // 6 7 8      0 1 2
-    std::rotate(terrains_.begin(), terrains_.begin() + 3, terrains_.end());
-
-    // Update last row
-    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileZ + 1);
-    terrains_[7]->updateCoordinates(currentTileX, currentTileZ + 1);
-    terrains_[8]->updateCoordinates(currentTileX + 1, currentTileZ + 1);
-  }
-
-  // Moving -X or West
-  if (diffX < 0) {
-    // Move first two columns right
-    // 0 1 2      2 0 1
-    // 3 4 5  ->  5 3 4
-    // 6 7 8      8 6 7
-    std::rotate(terrains_.begin(), terrains_.begin() + 2,
-                terrains_.begin() + 3);
-    std::rotate(terrains_.begin() + 3, terrains_.begin() + 5,
-                terrains_.begin() + 6);
-    std::rotate(terrains_.begin() + 6, terrains_.begin() + 8, terrains_.end());
-
-    // Update first column
-    terrains_[0]->updateCoordinates(currentTileX - 1, currentTileZ - 1);
-    terrains_[3]->updateCoordinates(currentTileX - 1, currentTileZ);
-    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileZ + 1);
-  }
-
-  // Moving X or East
-  if (diffX > 0) {
-    // Move last two columns left
-    // 0 1 2      1 2 0
-    // 3 4 5  ->  4 5 3
-    // 6 7 8      7 8 6
-    std::rotate(terrains_.begin(), terrains_.begin() + 1,
-                terrains_.begin() + 3);
-    std::rotate(terrains_.begin() + 3, terrains_.begin() + 4,
-                terrains_.begin() + 6);
-    std::rotate(terrains_.begin() + 6, terrains_.begin() + 7, terrains_.end());
-
-    // Update last column
-    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileZ - 1);
-    terrains_[5]->updateCoordinates(currentTileX + 1, currentTileZ);
-    terrains_[8]->updateCoordinates(currentTileX + 1, currentTileZ + 1);
-  }
-}
-
-void Game::printCurrentTile() {
-  std::cout << std::floor(currentPos_.x / Constants::TileWidth) << ", "
-            << std::floor(currentPos_.z / Constants::TileWidth) << std::endl;
 }
 
 void Game::toggleGui() {
@@ -400,8 +268,3 @@ void Game::toggleWireframe() {
   glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
 }
 
-void Game::changeTerrainAlgorithm(const int &algorithm) {
-    for (size_t idx = 0; idx < terrains_.size(); idx++) {
-      terrains_[idx]->updateAlgorithm(algorithm);
-    }
-}

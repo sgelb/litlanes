@@ -2,7 +2,7 @@
 cmake_minimum_required (VERSION 2.6)
 project (litlanes)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-SET(IMGUI "external/imgui-1.38/" CACHE PATH "Path to imgui")
+set(IMGUI "external/imgui-1.38/" CACHE PATH "Path to imgui")
 
 # Options. Turn on/off with 'cmake -Dmyvarname=ON/OFF' 
 
@@ -40,31 +40,33 @@ add_definitions(
   )
 
 set(SOURCES 
+  ${IMGUI}/imgui.cpp
   src/boundingbox.cpp
   src/camera.cpp
   src/game.cpp
+  src/imgui_impl_glfw_gl3.cpp
   src/main.cpp
   src/quadtree.cpp
   src/shader.cpp
-  src/terrain.cpp
-  src/imgui_impl_glfw_gl3.cpp
-  ${IMGUI}/imgui.cpp
+  src/tile.cpp
+  src/tileManager.cpp
   )
 
 set(HEADER
+  ${IMGUI}/imconfig.h
+  ${IMGUI}/imgui.h
+  ${IMGUI}/stb_rect_pack.h
+  ${IMGUI}/stb_textedit.h
+  ${IMGUI}/stb_truetype.h
   include/boundingbox.h
   include/camera.h
   include/constants.h
   include/game.h
+  include/imgui_impl_glfw_gl3.h
   include/quadtree.h
   include/shader.h
-  include/terrain.h
-  include/imgui_impl_glfw_gl3.h
-  ${IMGUI}/imgui.h
-  ${IMGUI}/imconfig.h
-  ${IMGUI}/stb_rect_pack.h
-  ${IMGUI}/stb_textedit.h
-  ${IMGUI}/stb_truetype.h
+  include/tile.h
+  include/tileManager.h
   )
 
 set(SHADER
@@ -83,14 +85,14 @@ if (BUILD_TESTS)
   set(TESTS
     test/testBoundingbox.cpp
     test/testQuadtree.cpp
-    test/testTerrain.cpp
+    test/testTile.cpp
     )
 
   set(TEST_SOURCES
     src/boundingbox.cpp
     src/quadtree.cpp
     src/shader.cpp
-    src/terrain.cpp
+    src/tile.cpp
     )
 
   set(TEST_HEADER
@@ -98,7 +100,7 @@ if (BUILD_TESTS)
     include/constants.h
     include/quadtree.h
     include/shader.h
-    include/terrain.h
+    include/tile.h
     )
 
   add_subdirectory(external/gtest-1.7.0)

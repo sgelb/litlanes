@@ -14,7 +14,10 @@
 
 ## Next steps
 
-- infinite terrain/tiles generation: use GLint64 for coords
+- refactor Terrain to Tile and create TileManager class
+- create GUI class
+- infinite terrain/tiles generation: use GLint64 for coords?
+- keyboard shortcuts?
 - show grid of tiles?
 - add basic lighting: ambient + directional
 - add basic texture
