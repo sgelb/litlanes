@@ -92,6 +92,7 @@ if (BUILD_TESTS)
 
   set(TEST_SOURCES
     src/boundingbox.cpp
+    src/noise.cpp
     src/quadtree.cpp
     src/shader.cpp
     src/tile.cpp
@@ -100,6 +101,7 @@ if (BUILD_TESTS)
   set(TEST_HEADER
     include/boundingbox.h
     include/constants.h
+    include/noise.h
     include/quadtree.h
     include/shader.h
     include/tile.h

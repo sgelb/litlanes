@@ -4,7 +4,6 @@
 #include <GLFW/glfw3.h>
 #include <vector>
 
-
 /**
  * @brief Constants
  */

@@ -15,34 +15,35 @@ struct NoiseOptions {
 };
 
 class NoiseInterface {
-  public:
-    virtual float getValue(const float &x, const float &y, const float &z) = 0;
-    virtual void initializeOptions() = 0;
-    virtual void setOptions(const NoiseOptions &options) = 0;
+ public:
+  virtual float getValue(const float &x, const float &y, const float &z) = 0;
+  virtual void initializeOptions() = 0;
+  virtual void setOptions(const NoiseOptions &options) = 0;
 
-    NoiseOptions getOptions();
-  protected:
-    NoiseOptions options_;
+  NoiseOptions getOptions();
+
+ protected:
+  NoiseOptions options_;
 };
-
 
 class PerlinNoise : public NoiseInterface {
  public:
-    PerlinNoise();
-    float getValue(const float &x, const float &y, const float &z);
-    void initializeOptions();
-    void setOptions(const NoiseOptions &options);
- private:
-    std::shared_ptr<noise::module::Perlin> noise_;
-};
+  PerlinNoise();
+  float getValue(const float &x, const float &y, const float &z);
+  void initializeOptions();
+  void setOptions(const NoiseOptions &options);
 
+ private:
+  std::shared_ptr<noise::module::Perlin> noise_;
+};
 
 class RidgedMultiNoise : public NoiseInterface {
  public:
-    RidgedMultiNoise();
-    float getValue(const float &x, const float &y, const float &z);
-    void initializeOptions();
-    void setOptions(const NoiseOptions &options);
+  RidgedMultiNoise();
+  float getValue(const float &x, const float &y, const float &z);
+  void initializeOptions();
+  void setOptions(const NoiseOptions &options);
+
  private:
-    std::shared_ptr<noise::module::RidgedMulti> noise_;
+  std::shared_ptr<noise::module::RidgedMulti> noise_;
 };

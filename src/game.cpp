@@ -284,15 +284,17 @@ void Game::showGui() {
   if (ImGui::CollapsingHeader("Algorithm Options")) {
     bool optsChanged = false;
 
-    // Options for all algorithms
+    // Options available for all algorithms
     optsChanged |= (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
-    optsChanged |= (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
+    optsChanged |=
+        (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
     optsChanged |= (ImGui::SliderInt("Octaves", &options_.octaveCount, 1, 6));
     optsChanged |= (ImGui::SliderInt("Seed", &options_.seed, 1, 6));
 
-    // Some options are not available for every algorithm
+    // Options not available for every algorithm
     if (algorithm != Constants::RidgedMulti) {
-      optsChanged |= (ImGui::SliderFloat("Persistence", &options_.persistence, 0, 1));
+      optsChanged |=
+          (ImGui::SliderFloat("Persistence", &options_.persistence, 0, 1));
     }
 
     if (optsChanged) {

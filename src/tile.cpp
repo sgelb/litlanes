@@ -1,6 +1,7 @@
 #include "tile.h"
 
-Tile::Tile(const int &x, const int &z, const std::shared_ptr<NoiseInterface> &noise,
+Tile::Tile(const int &x, const int &z,
+           const std::shared_ptr<NoiseInterface> &noise,
            const GLuint &tileWidth)
     : noise_(noise),
       tileWidth_(tileWidth),

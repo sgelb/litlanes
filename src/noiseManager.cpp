@@ -1,8 +1,7 @@
 #include "noiseManager.h"
 
-
 void NoiseManager::setNoise(const int &algorithm) {
-                               /* const NoiseOptions &options) { */
+  /* const NoiseOptions &options) { */
 
   if (algorithm_ == algorithm) {
     return;
@@ -12,22 +11,24 @@ void NoiseManager::setNoise(const int &algorithm) {
   /* options_ = options; */
 
   switch (algorithm_) {
-    case Constants::Perlin:
-      noise_ = Noise<noise::module::Perlin>(std::make_shared<noise::module::Perlin>(new noise::module::Perlin));
-      std::cout << "Perlin: " << noise_.noise->GetSeed() << std::endl;
-      break;
-    case Constants::RidgedMulti:
-      noise_ = Noise<noise::module::RidgedMulti>(std::make_shared<noise::module::RidgedMulti>(new noise::module::RidgedMulti));
-      std::cout << "Ridged: " << noise_.noise->GetSeed() << std::endl;
-      break;
-    default:
-      std::cout << "Nada" << std::endl;
+  case Constants::Perlin:
+    noise_ = Noise<noise::module::Perlin>(
+        std::make_shared<noise::module::Perlin>(new noise::module::Perlin));
+    std::cout << "Perlin: " << noise_.noise->GetSeed() << std::endl;
+    break;
+  case Constants::RidgedMulti:
+    noise_ = Noise<noise::module::RidgedMulti>(
+        std::make_shared<noise::module::RidgedMulti>(
+            new noise::module::RidgedMulti));
+    std::cout << "Ridged: " << noise_.noise->GetSeed() << std::endl;
+    break;
+  default:
+    std::cout << "Nada" << std::endl;
   }
 }
 
 /* template <class T> */
-float NoiseManager::getValue(const float &x, const float &y,
-                                const float &z) {
+float NoiseManager::getValue(const float &x, const float &y, const float &z) {
   return noise_.GetValue(x, y, z);
 }
 

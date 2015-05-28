@@ -19,8 +19,9 @@ struct NoiseOptions {
 
 class Noise {
  public:
-    explicit Noise(std::shared_ptr<T> t) : noise(t) {}
-    std::shared_ptr<T> noise;
+  explicit Noise(std::shared_ptr<T> t) : noise(t) {
+  }
+  std::shared_ptr<T> noise;
 };
 
 /* template <class T> */

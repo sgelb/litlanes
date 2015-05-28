@@ -140,7 +140,8 @@ void TileManager::setTileAlgorithm(const int &algorithm) {
   }
   currentAlgorithm_ = algorithm;
 
-  // try to use exisiting noise instance from noisePool, otherwise create and add new one
+  // try to use exisiting noise instance from noisePool, otherwise create and
+  // add new one
   auto result = noisePool_.find(algorithm);
   if (result != noisePool_.end()) {
     // use already existing noise from pool
@@ -148,17 +149,17 @@ void TileManager::setTileAlgorithm(const int &algorithm) {
   } else {
     // create new noise
     switch (algorithm) {
-      case Constants::Perlin:
-        noise_ = std::shared_ptr<NoiseInterface>(new PerlinNoise);
-        break;
-      case Constants::RidgedMulti:
-        noise_ = std::shared_ptr<NoiseInterface>(new RidgedMultiNoise);
-        break;
-      /* case Constants::Billow: */
-      /*   noise_ = modulePtr(new noise::module::Billow); */
-      /*   break; */
-      default:
-        std::cout << "TODO" << std::endl;
+    case Constants::Perlin:
+      noise_ = std::shared_ptr<NoiseInterface>(new PerlinNoise);
+      break;
+    case Constants::RidgedMulti:
+      noise_ = std::shared_ptr<NoiseInterface>(new RidgedMultiNoise);
+      break;
+    /* case Constants::Billow: */
+    /*   noise_ = modulePtr(new noise::module::Billow); */
+    /*   break; */
+    default:
+      std::cout << "TODO" << std::endl;
     }
     // and add to pool
     noisePool_[algorithm] = noise_;

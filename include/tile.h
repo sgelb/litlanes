@@ -37,7 +37,8 @@ class Tile {
    * @param tileWidth edge length of tile tile
    */
   explicit Tile(const int &x, const int &z,
-                const std::shared_ptr<NoiseInterface> &noise,
+                const std::shared_ptr<NoiseInterface> &noise =
+                    std::shared_ptr<NoiseInterface>(new PerlinNoise),
                 const GLuint &tileWidth = Constants::TileWidth);
   /**
    * @brief Set up shader and opengl buffers
