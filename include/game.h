@@ -39,6 +39,7 @@ class Game {
   TileManager tileManager_;
   bool keys_[1024];
   bool guiOpen_;
+  bool cameraFreeze_;
   GLfloat deltaTime_;
   GLfloat lastFrame_;
   GLfloat lastTime_;
@@ -51,6 +52,7 @@ class Game {
   void initializeGl();
   void toggleGui();
   void toggleWireframe();
+  void toggleCameraFreeze();
   void getCurrentPosition();
   void do_movement(const GLfloat &deltaTime);
   static void key_callback(GLFWwindow *window, int key, int scancode,

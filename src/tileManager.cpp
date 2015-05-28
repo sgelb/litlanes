@@ -1,8 +1,13 @@
 #include "tileManager.h"
 
+#include "noiseManager.h"
+
 void TileManager::initialize(const glm::vec3 &currentPos) {
   currentPos_ = currentPos;
   previousPos_ = currentPos;
+
+  algorithm_ = Constants::Perlin;
+  noise_ = modulePtr(new noise::module::Perlin);
 
   // create first nine tiles, from (0,0) to (2,2)
   //
@@ -15,13 +20,12 @@ void TileManager::initialize(const glm::vec3 &currentPos) {
 
   for (int z = 0; z < 3; z++) {
     for (int x = 0; x < 3; x++) {
-      std::unique_ptr<Tile> tile(new Tile(x, z));
+      std::unique_ptr<Tile> tile(new Tile(x, z, noise_));
       tile->setup();
       tiles_.push_back(std::move(tile));
     }
   }
 }
-
 
 void TileManager::update(glm::vec3 const &currentPos_) {
   int currentTileX = std::floor(currentPos_.x / Constants::TileWidth);
@@ -86,10 +90,8 @@ void TileManager::update(glm::vec3 const &currentPos_) {
     // 0 1 2      2 0 1
     // 3 4 5  ->  5 3 4
     // 6 7 8      8 6 7
-    std::rotate(tiles_.begin(), tiles_.begin() + 2,
-                tiles_.begin() + 3);
-    std::rotate(tiles_.begin() + 3, tiles_.begin() + 5,
-                tiles_.begin() + 6);
+    std::rotate(tiles_.begin(), tiles_.begin() + 2, tiles_.begin() + 3);
+    std::rotate(tiles_.begin() + 3, tiles_.begin() + 5, tiles_.begin() + 6);
     std::rotate(tiles_.begin() + 6, tiles_.begin() + 8, tiles_.end());
 
     // Update first column
@@ -104,10 +106,8 @@ void TileManager::update(glm::vec3 const &currentPos_) {
     // 0 1 2      1 2 0
     // 3 4 5  ->  4 5 3
     // 6 7 8      7 8 6
-    std::rotate(tiles_.begin(), tiles_.begin() + 1,
-                tiles_.begin() + 3);
-    std::rotate(tiles_.begin() + 3, tiles_.begin() + 4,
-                tiles_.begin() + 6);
+    std::rotate(tiles_.begin(), tiles_.begin() + 1, tiles_.begin() + 3);
+    std::rotate(tiles_.begin() + 3, tiles_.begin() + 4, tiles_.begin() + 6);
     std::rotate(tiles_.begin() + 6, tiles_.begin() + 7, tiles_.end());
 
     // Update last column
@@ -117,9 +117,8 @@ void TileManager::update(glm::vec3 const &currentPos_) {
   }
 }
 
-
-void TileManager::renderAll(const GLfloat &deltaTime, const glm::mat4
-    &viewMatrix) {
+void TileManager::renderAll(const GLfloat &deltaTime,
+                            const glm::mat4 &viewMatrix) {
   // Update and render tiles
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->update(deltaTime);
@@ -134,8 +133,51 @@ void TileManager::cleanUp() {
   }
 }
 
+void TileManager::setOctaveCount(const int &octaves) {
+  // TODO: this is ugly!
+  switch (algorithm_) {
+  case Constants::Perlin:
+    static_cast<noise::module::Perlin&>(*noise_).SetOctaveCount(octaves);
+    changeTileAlgorithm(algorithm_);
+    break;
+  case Constants::RidgedMulti:
+    /* noise_ = modulePtr(new noise::module::RidgedMulti); */
+    break;
+  case Constants::Billow:
+    /* noise_ = modulePtr(new noise::module::Billow); */
+    break;
+  default:
+    break;
+    /* noise_ = modulePtr(new noise::module::Perlin); */
+  }
+}
+
+void TileManager::setNoise(const int &algorithm) {
+  if (algorithm_ == algorithm) {
+    return;
+  }
+  algorithm_ = algorithm;
+
+  // TODO: this is ugly!
+  switch (algorithm_) {
+  case Constants::Perlin:
+    noise_ = modulePtr(new noise::module::Perlin);
+    break;
+  case Constants::RidgedMulti:
+    noise_ = modulePtr(new noise::module::RidgedMulti);
+    break;
+  case Constants::Billow:
+    noise_ = modulePtr(new noise::module::Billow);
+    break;
+  default:
+    noise_ = modulePtr(new noise::module::Perlin);
+  }
+}
+
 void TileManager::changeTileAlgorithm(const int &algorithm) {
-    for (size_t idx = 0; idx < tiles_.size(); idx++) {
-      tiles_[idx]->updateAlgorithm(algorithm);
-    }
+  setNoise(algorithm);
+
+  for (size_t idx = 0; idx < tiles_.size(); idx++) {
+    tiles_[idx]->updateAlgorithm(noise_);
+  }
 }

@@ -1,8 +1,9 @@
 #include "tile.h"
 
-Tile::Tile(const int &x, const int &z, const GLuint &tileWidth)
-    : tileWidth_(tileWidth),
-      noise_(modulePtr(new noise::module::Perlin)),
+Tile::Tile(const int &x, const int &z, const modulePtr &noise,
+           const GLuint &tileWidth)
+    : noise_(noise),
+      tileWidth_(tileWidth),
       xOffset_(x * Constants::TileWidth),
       zOffset_(z * Constants::TileWidth) {
   // initialize tile
@@ -10,6 +11,7 @@ Tile::Tile(const int &x, const int &z, const GLuint &tileWidth)
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
   createVertices();
   createIndices();
+  run_ = true;
 }
 
 void Tile::setup() {
@@ -186,22 +188,6 @@ glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
   return color;
 }
 
-void Tile::setAlgorithm(const int &algorithm) {
-  switch (algorithm) {
-  case Constants::Perlin:
-    noise_ = modulePtr(new noise::module::Perlin);
-    break;
-  case Constants::RidgedMulti:
-    noise_ = modulePtr(new noise::module::RidgedMulti);
-    break;
-  case Constants::Billow:
-    noise_ = modulePtr(new noise::module::Billow);
-    break;
-  default:
-    noise_ = modulePtr(new noise::module::Perlin);
-  }
-}
-
 std::vector<Vertex> Tile::getVertices() {
   return vertices_;
 }
@@ -225,8 +211,8 @@ void Tile::updateCoordinates(const int &x, const int &z) {
   setupBuffers();
 }
 
-void Tile::updateAlgorithm(const int &algorithm) {
-  setAlgorithm(algorithm);
+void Tile::updateAlgorithm(const modulePtr &noise) {
+  noise_ = noise;
   createVertices();
   createIndices();
   setupBuffers();

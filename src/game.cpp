@@ -2,10 +2,11 @@
 
 Game::Game() : keys_{false}, fillmode_{GL_FILL} {
   // position camera in center of 3*3 tiles
-  GLfloat coord = 3*Constants::TileWidth / 2;
+  GLfloat coord = 3 * Constants::TileWidth / 2;
   currentPos_ = glm::vec3(coord, 0.0f, coord);
   camera_ = Camera(glm::vec3(currentPos_.x, 60.0f, currentPos_.z));
   tileManager_ = TileManager();
+  cameraFreeze_ = false;
 }
 
 int Game::run() {
@@ -29,6 +30,7 @@ int Game::run() {
   // is GUI open?
   guiOpen_ = true;
   int e = 0;
+  int octaves = 1;
 
   // Game loop
   while (!glfwWindowShouldClose(window_)) {
@@ -36,7 +38,7 @@ int Game::run() {
     GLfloat currentTime = glfwGetTime();
     deltaTime_ = currentTime - lastFrame_;
     lastFrame_ = currentTime;
- 
+
     // Check for events
     glfwPollEvents();
 
@@ -54,7 +56,7 @@ int Game::run() {
 
       // FPS
       ImGui::Text("Avg %.3f ms/frame (%.1f FPS)",
-          1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                  1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
       // Current tile
       int xTile = std::floor(currentPos_.x / Constants::TileWidth);
@@ -64,30 +66,41 @@ int Game::run() {
       // Keys
       if (ImGui::CollapsingHeader("Keys")) {
         ImGui::BulletText("TAB toggles this window");
+        ImGui::BulletText("F freezes camera movement");
         ImGui::BulletText("Move around with A, S, D, W, E and Q");
         ImGui::BulletText("Use mouse to look around");
       }
 
       // Algorithm
       if (ImGui::CollapsingHeader("Algorithms")) {
-        // TODO: show algorithm-specific options
         if (ImGui::RadioButton("Perlin Noise", &e, Constants::Perlin)) {
           tileManager_.changeTileAlgorithm(Constants::Perlin);
         };
         if (ImGui::RadioButton("Ridged-Multifractal Noise", &e,
-              Constants::RidgedMulti)) {
+                               Constants::RidgedMulti)) {
           tileManager_.changeTileAlgorithm(Constants::RidgedMulti);
         };
         if (ImGui::RadioButton("Billow", &e, Constants::Billow)) {
           tileManager_.changeTileAlgorithm(Constants::Billow);
         };
-        if (ImGui::RadioButton("Diamond-Square", &e, Constants::DiamondSquare)) {
+        if (ImGui::RadioButton("Diamond-Square", &e,
+                               Constants::DiamondSquare)) {
           tileManager_.changeTileAlgorithm(Constants::DiamondSquare);
         };
         if (ImGui::RadioButton("Random", &e, Constants::Random)) {
           tileManager_.changeTileAlgorithm(Constants::Random);
         };
       }
+
+      // Algorithm Options
+      // TODO: show algorithm-specific options
+      if (ImGui::CollapsingHeader("Algorithm Options")) {
+        if (ImGui::SliderInt("Octaves", &octaves, 1, 6)) {
+          tileManager_.setOctaveCount(octaves);
+        }
+      }
+ 
+
       // TODO:
       // - Simplex Algo
       // - wireframe
@@ -174,8 +187,11 @@ void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
   if (key == GLFW_KEY_X && action == GLFW_PRESS) {
     game->toggleWireframe();
   }
+  if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+    game->toggleCameraFreeze();
+  }
 
-  // set movement keys. 
+  // set movement keys.
   if (key >= 0 && key < 1024) {
     if (action == GLFW_PRESS) {
       game->keys_[key] = true;
@@ -190,9 +206,12 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   static GLfloat lastX;
   static GLfloat lastY;
 
-  if (ImGui::GetIO().WantCaptureMouse) return;
-
   Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
+
+  if (ImGui::GetIO().WantCaptureMouse || game->cameraFreeze_) {
+    return;
+  }
+
 
   if (firstMouse) {
     lastX = static_cast<GLfloat>(xpos);
@@ -259,7 +278,11 @@ void Game::getCurrentPosition() {
 }
 
 void Game::toggleGui() {
-  guiOpen_ = !guiOpen_; 
+  guiOpen_ = !guiOpen_;
+}
+
+void Game::toggleCameraFreeze() {
+  cameraFreeze_ = !cameraFreeze_;
 }
 
 void Game::toggleWireframe() {
@@ -267,4 +290,3 @@ void Game::toggleWireframe() {
   fillmode_ = (fillmode_ == GL_FILL) ? GL_LINE : GL_FILL;
   glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
 }
-

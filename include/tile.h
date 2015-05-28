@@ -26,9 +26,11 @@ struct Vertex {
 };
 
 /**
- * @brief TODO: what is this class?
+ * @brief TODO
  */
 class Tile {
+  using modulePtr = std::shared_ptr<noise::module::Module>;
+
  public:
   /**
    * @brief Construct tile tile of provided size
@@ -36,7 +38,8 @@ class Tile {
    * @param tileWidth edge length of tile tile
    */
   explicit Tile(const int &x, const int &z,
-                   const GLuint &tileWidth = Constants::TileWidth);
+                const modulePtr &noise = modulePtr(new noise::module::Perlin),
+                const GLuint &tileWidth = Constants::TileWidth);
   /**
    * @brief Set up shader and opengl buffers
    */
@@ -84,16 +87,15 @@ class Tile {
   /**
    * @brief Set new algorithm and update vertices
    *
-   * @param algorithm
+   * @param modulePtr
    */
-  void updateAlgorithm(const int &algorithm);
+  void updateAlgorithm(const modulePtr &noise);
 
  private:
-  using modulePtr = std::unique_ptr<noise::module::Module>;
-
   GLuint tileWidth_;
   modulePtr noise_;
   std::unique_ptr<Shader> shader_;
+  bool run_;
 
   std::vector<Vertex> vertices_;
   std::vector<GLuint> indices_;
@@ -109,7 +111,6 @@ class Tile {
   int zOffset_;
   glm::vec3 lightPos_;
 
-  void setAlgorithm(const int &algorithm);
   void createVertices();
   void createIndices();
   void setupShader();
