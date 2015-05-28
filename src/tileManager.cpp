@@ -1,13 +1,14 @@
 #include "tileManager.h"
 
-#include "noiseManager.h"
-
 void TileManager::initialize(const glm::vec3 &currentPos) {
   currentPos_ = currentPos;
   previousPos_ = currentPos;
 
-  algorithm_ = Constants::Perlin;
-  noise_ = modulePtr(new noise::module::Perlin);
+  // default algorithm for terrain generation is PerlinNoise
+  currentAlgorithm_ = Constants::Perlin;
+  noise_ = std::shared_ptr<NoiseInterface>(new PerlinNoise);
+  // add to pool
+  noisePool_[Constants::Perlin] = noise_;
 
   // create first nine tiles, from (0,0) to (2,2)
   //
@@ -133,50 +134,49 @@ void TileManager::cleanUp() {
   }
 }
 
-void TileManager::setOctaveCount(const int &octaves) {
-  // TODO: this is ugly!
-  switch (algorithm_) {
-  case Constants::Perlin:
-    static_cast<noise::module::Perlin&>(*noise_).SetOctaveCount(octaves);
-    changeTileAlgorithm(algorithm_);
-    break;
-  case Constants::RidgedMulti:
-    /* noise_ = modulePtr(new noise::module::RidgedMulti); */
-    break;
-  case Constants::Billow:
-    /* noise_ = modulePtr(new noise::module::Billow); */
-    break;
-  default:
-    break;
-    /* noise_ = modulePtr(new noise::module::Perlin); */
-  }
-}
-
-void TileManager::setNoise(const int &algorithm) {
-  if (algorithm_ == algorithm) {
+void TileManager::setTileAlgorithm(const int &algorithm) {
+  if (currentAlgorithm_ == algorithm) {
     return;
   }
-  algorithm_ = algorithm;
+  currentAlgorithm_ = algorithm;
 
-  // TODO: this is ugly!
-  switch (algorithm_) {
-  case Constants::Perlin:
-    noise_ = modulePtr(new noise::module::Perlin);
-    break;
-  case Constants::RidgedMulti:
-    noise_ = modulePtr(new noise::module::RidgedMulti);
-    break;
-  case Constants::Billow:
-    noise_ = modulePtr(new noise::module::Billow);
-    break;
-  default:
-    noise_ = modulePtr(new noise::module::Perlin);
+  // try to use exisiting noise instance from noisePool, otherwise create and add new one
+  auto result = noisePool_.find(algorithm);
+  if (result != noisePool_.end()) {
+    // use already existing noise from pool
+    noise_ = result->second;
+  } else {
+    // create new noise
+    switch (algorithm) {
+      case Constants::Perlin:
+        noise_ = std::shared_ptr<NoiseInterface>(new PerlinNoise);
+        break;
+      case Constants::RidgedMulti:
+        noise_ = std::shared_ptr<NoiseInterface>(new RidgedMultiNoise);
+        break;
+      /* case Constants::Billow: */
+      /*   noise_ = modulePtr(new noise::module::Billow); */
+      /*   break; */
+      default:
+        std::cout << "TODO" << std::endl;
+    }
+    // and add to pool
+    noisePool_[algorithm] = noise_;
+  }
+
+  // tell tiles anout changes
+  for (size_t idx = 0; idx < tiles_.size(); idx++) {
+    tiles_[idx]->updateAlgorithm(noise_);
   }
 }
 
-void TileManager::changeTileAlgorithm(const int &algorithm) {
-  setNoise(algorithm);
+NoiseOptions TileManager::getOptions() {
+  return noise_->getOptions();
+}
 
+void TileManager::setTileAlgorithmOptions(const NoiseOptions &options) {
+  noise_->setOptions(options);
+  // tell tiles anout changes
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->updateAlgorithm(noise_);
   }

@@ -6,7 +6,6 @@
 #include <ctime>
 
 #include <GL/glew.h>
-
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
@@ -38,7 +37,7 @@ class Game {
   GLFWwindow *window_;
   TileManager tileManager_;
   bool keys_[1024];
-  bool guiOpen_;
+  bool guiClosed_;
   bool cameraFreeze_;
   GLfloat deltaTime_;
   GLfloat lastFrame_;
@@ -46,6 +45,7 @@ class Game {
   int frameCount_;
   GLenum fillmode_;
   glm::vec3 currentPos_;
+  NoiseOptions options_;
 
   int initializeGlfw();
   int initializeGlew();
@@ -55,6 +55,7 @@ class Game {
   void toggleCameraFreeze();
   void getCurrentPosition();
   void do_movement(const GLfloat &deltaTime);
+  void showGui();
   static void key_callback(GLFWwindow *window, int key, int scancode,
                            int action, int mode);
   static void mouse_callback(GLFWwindow *window, double xpos, double ypos);

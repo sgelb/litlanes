@@ -1,6 +1,6 @@
 #include "tile.h"
 
-Tile::Tile(const int &x, const int &z, const modulePtr &noise,
+Tile::Tile(const int &x, const int &z, const std::shared_ptr<NoiseInterface> &noise,
            const GLuint &tileWidth)
     : noise_(noise),
       tileWidth_(tileWidth),
@@ -142,7 +142,7 @@ void Tile::createVertices() {
       // use world space coordinates of x and z (mapped to [-1, 1]) to create
       // height generated with noise algorithm
       // y can be used as a seed
-      y = noise_->GetValue(mapToInterval(worldX), 0.0f, mapToInterval(worldZ));
+      y = noise_->getValue(mapToInterval(worldX), 0.0f, mapToInterval(worldZ));
 
       // set position
       vertices_[idx].position =
@@ -211,7 +211,7 @@ void Tile::updateCoordinates(const int &x, const int &z) {
   setupBuffers();
 }
 
-void Tile::updateAlgorithm(const modulePtr &noise) {
+void Tile::updateAlgorithm(const std::shared_ptr<NoiseInterface> noise) {
   noise_ = noise;
   createVertices();
   createIndices();

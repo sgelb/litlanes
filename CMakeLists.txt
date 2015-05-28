@@ -46,6 +46,7 @@ set(SOURCES
   src/game.cpp
   src/imgui_impl_glfw_gl3.cpp
   src/main.cpp
+  src/noise.cpp
   src/quadtree.cpp
   src/shader.cpp
   src/tile.cpp
@@ -63,6 +64,7 @@ set(HEADER
   include/constants.h
   include/game.h
   include/imgui_impl_glfw_gl3.h
+  include/noise.h
   include/quadtree.h
   include/shader.h
   include/tile.h

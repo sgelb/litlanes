@@ -16,6 +16,7 @@
 #include "constants.h"
 #include "quadtree.h"
 #include "shader.h"
+#include "noise.h"
 
 /**
  * @brief Vertex defined by position and color
@@ -29,8 +30,6 @@ struct Vertex {
  * @brief TODO
  */
 class Tile {
-  using modulePtr = std::shared_ptr<noise::module::Module>;
-
  public:
   /**
    * @brief Construct tile tile of provided size
@@ -38,7 +37,7 @@ class Tile {
    * @param tileWidth edge length of tile tile
    */
   explicit Tile(const int &x, const int &z,
-                const modulePtr &noise = modulePtr(new noise::module::Perlin),
+                const std::shared_ptr<NoiseInterface> &noise,
                 const GLuint &tileWidth = Constants::TileWidth);
   /**
    * @brief Set up shader and opengl buffers
@@ -87,13 +86,12 @@ class Tile {
   /**
    * @brief Set new algorithm and update vertices
    *
-   * @param modulePtr
    */
-  void updateAlgorithm(const modulePtr &noise);
+  void updateAlgorithm(const std::shared_ptr<NoiseInterface> noise);
 
  private:
   GLuint tileWidth_;
-  modulePtr noise_;
+  std::shared_ptr<NoiseInterface> noise_;
   std::unique_ptr<Shader> shader_;
   bool run_;
 

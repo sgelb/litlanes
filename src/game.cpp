@@ -7,6 +7,7 @@ Game::Game() : keys_{false}, fillmode_{GL_FILL} {
   camera_ = Camera(glm::vec3(currentPos_.x, 60.0f, currentPos_.z));
   tileManager_ = TileManager();
   cameraFreeze_ = false;
+  guiClosed_ = true;
 }
 
 int Game::run() {
@@ -19,6 +20,7 @@ int Game::run() {
   }
   initializeGl();
   tileManager_.initialize(currentPos_);
+  options_ = tileManager_.getOptions();
 
   ImGui_ImplGlfwGL3_Init(window_, false);
 
@@ -26,11 +28,6 @@ int Game::run() {
   lastFrame_ = 0.0f; // Time at last frame
   lastTime_ = 0.0f;  // Time since last fps-"second"
   frameCount_ = 0;
-
-  // is GUI open?
-  guiOpen_ = true;
-  int e = 0;
-  int octaves = 1;
 
   // Game loop
   while (!glfwWindowShouldClose(window_)) {
@@ -43,72 +40,7 @@ int Game::run() {
     glfwPollEvents();
 
     // GUI
-    // TODO: refactor/move
-    if (guiOpen_) {
-      ImGui_ImplGlfwGL3_NewFrame();
-      ImGui::BeginPopup(&guiOpen_);
-
-      // Style
-      ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-
-      // Position
-      ImGui::SetWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
-
-      // FPS
-      ImGui::Text("Avg %.3f ms/frame (%.1f FPS)",
-                  1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
-      // Current tile
-      int xTile = std::floor(currentPos_.x / Constants::TileWidth);
-      int zTile = std::floor(currentPos_.z / Constants::TileWidth);
-      ImGui::Text("Current tile: %i,%i", xTile, zTile);
-
-      // Keys
-      if (ImGui::CollapsingHeader("Keys")) {
-        ImGui::BulletText("TAB toggles this window");
-        ImGui::BulletText("F freezes camera movement");
-        ImGui::BulletText("Move around with A, S, D, W, E and Q");
-        ImGui::BulletText("Use mouse to look around");
-      }
-
-      // Algorithm
-      if (ImGui::CollapsingHeader("Algorithms")) {
-        if (ImGui::RadioButton("Perlin Noise", &e, Constants::Perlin)) {
-          tileManager_.changeTileAlgorithm(Constants::Perlin);
-        };
-        if (ImGui::RadioButton("Ridged-Multifractal Noise", &e,
-                               Constants::RidgedMulti)) {
-          tileManager_.changeTileAlgorithm(Constants::RidgedMulti);
-        };
-        if (ImGui::RadioButton("Billow", &e, Constants::Billow)) {
-          tileManager_.changeTileAlgorithm(Constants::Billow);
-        };
-        if (ImGui::RadioButton("Diamond-Square", &e,
-                               Constants::DiamondSquare)) {
-          tileManager_.changeTileAlgorithm(Constants::DiamondSquare);
-        };
-        if (ImGui::RadioButton("Random", &e, Constants::Random)) {
-          tileManager_.changeTileAlgorithm(Constants::Random);
-        };
-      }
-
-      // Algorithm Options
-      // TODO: show algorithm-specific options
-      if (ImGui::CollapsingHeader("Algorithm Options")) {
-        if (ImGui::SliderInt("Octaves", &octaves, 1, 6)) {
-          tileManager_.setOctaveCount(octaves);
-        }
-      }
- 
-
-      // TODO:
-      // - Simplex Algo
-      // - wireframe
-      // - coloring options
-      // - GoTo tile
-
-      ImGui::EndPopup();
-    }
+    showGui();
 
     // Move
     do_movement(deltaTime_);
@@ -125,7 +57,7 @@ int Game::run() {
     tileManager_.renderAll(deltaTime_, camera_.getViewMatrix());
 
     // Render GUI
-    if (guiOpen_) {
+    if (!guiClosed_) {
       // ignore wireframe setting for gui
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       ImGui::Render();
@@ -212,7 +144,6 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     return;
   }
 
-
   if (firstMouse) {
     lastX = static_cast<GLfloat>(xpos);
     lastY = static_cast<GLfloat>(ypos);
@@ -278,7 +209,7 @@ void Game::getCurrentPosition() {
 }
 
 void Game::toggleGui() {
-  guiOpen_ = !guiOpen_;
+  guiClosed_ = !guiClosed_;
 }
 
 void Game::toggleCameraFreeze() {
@@ -286,7 +217,88 @@ void Game::toggleCameraFreeze() {
 }
 
 void Game::toggleWireframe() {
-  // TODO: show wireframe in solid color?
+  // TODO: change shader to show wireframe in solid color?
   fillmode_ = (fillmode_ == GL_FILL) ? GL_LINE : GL_FILL;
   glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
+}
+
+void Game::showGui() {
+  static int algorithm = Constants::Perlin;
+
+  if (guiClosed_) {
+    return;
+  }
+
+  ImGui_ImplGlfwGL3_NewFrame();
+  ImGui::BeginPopup(&guiClosed_);
+
+  // Style
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+  // Position
+  ImGui::SetWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+
+  // FPS
+  ImGui::Text("Avg %.3f ms/frame (%.1f FPS)",
+              1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+  // Current tile
+  int xTile = std::floor(currentPos_.x / Constants::TileWidth);
+  int zTile = std::floor(currentPos_.z / Constants::TileWidth);
+  ImGui::Text("Current tile: %i,%i", xTile, zTile);
+
+  // Keys
+  if (ImGui::CollapsingHeader("Keys")) {
+    ImGui::BulletText("<TAB> toggles GUI");
+    ImGui::BulletText("Move around with <A>, <S>, <D>, <W>, <E> and <Q>");
+    ImGui::BulletText("Look around with mouse");
+    ImGui::BulletText("<F> freezes mouse");
+  }
+
+  // Algorithm
+  if (ImGui::CollapsingHeader("Algorithms")) {
+
+    // This code is not very readable, but i like it. | is the bitwise
+    // OR-operator. It returns true if at least one of the two compared bits is
+    // true. ImGui::RadioButton returns true if pressed. If this happens just
+    // once, btnPressed stays true, no matter the following results.
+
+    bool btnPressed = false;
+    btnPressed |=
+        (ImGui::RadioButton("Perlin Noise", &algorithm, Constants::Perlin));
+    btnPressed |= (ImGui::RadioButton("Ridged-Multifractal Noise", &algorithm,
+                                      Constants::RidgedMulti));
+    btnPressed |= (ImGui::RadioButton("Billow", &algorithm, Constants::Billow));
+    btnPressed |= (ImGui::RadioButton("Diamond-Square", &algorithm,
+                                      Constants::DiamondSquare));
+    btnPressed |= (ImGui::RadioButton("Random", &algorithm, Constants::Random));
+
+    if (btnPressed) {
+      tileManager_.setTileAlgorithm(algorithm);
+      options_ = tileManager_.getOptions();
+    }
+  }
+
+  // Algorithm Options
+  // TODO: show algorithm-specific options
+  if (ImGui::CollapsingHeader("Algorithm Options")) {
+    bool optsChanged = false;
+
+    // Options for all algorithms
+    optsChanged |= (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
+    optsChanged |= (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
+    optsChanged |= (ImGui::SliderInt("Octaves", &options_.octaveCount, 1, 6));
+    optsChanged |= (ImGui::SliderInt("Seed", &options_.seed, 1, 6));
+
+    // Some options are not available for every algorithm
+    if (algorithm != Constants::RidgedMulti) {
+      optsChanged |= (ImGui::SliderFloat("Persistence", &options_.persistence, 0, 1));
+    }
+
+    if (optsChanged) {
+      tileManager_.setTileAlgorithmOptions(options_);
+    }
+  }
+
+  ImGui::EndPopup();
 }
