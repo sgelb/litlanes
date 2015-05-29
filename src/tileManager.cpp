@@ -7,8 +7,8 @@ void TileManager::initialize(const glm::vec3 &currentPos) {
   // default algorithm for terrain generation is PerlinNoise
   currentAlgorithm_ = Constants::Perlin;
   noise_ = std::shared_ptr<NoiseInterface>(new PerlinNoise);
-  // add to pool
-  noisePool_[Constants::Perlin] = noise_;
+  // add to cache
+  noiseCache_[Constants::Perlin] = noise_;
 
   // create first nine tiles, from (0,0) to (2,2)
   //
@@ -134,17 +134,18 @@ void TileManager::cleanUp() {
   }
 }
 
+// TODO: refactor to NoiseManager class?
 void TileManager::setTileAlgorithm(const int &algorithm) {
   if (currentAlgorithm_ == algorithm) {
     return;
   }
   currentAlgorithm_ = algorithm;
 
-  // try to use exisiting noise instance from noisePool, otherwise create and
+  // try to use exisiting noise instance from noiseCache, otherwise create and
   // add new one
-  auto result = noisePool_.find(algorithm);
-  if (result != noisePool_.end()) {
-    // use already existing noise from pool
+  auto result = noiseCache_.find(algorithm);
+  if (result != noiseCache_.end()) {
+    // use already existing noise from cache
     noise_ = result->second;
   } else {
     // create new noise
@@ -155,17 +156,17 @@ void TileManager::setTileAlgorithm(const int &algorithm) {
     case Constants::RidgedMulti:
       noise_ = std::shared_ptr<NoiseInterface>(new RidgedMultiNoise);
       break;
-    /* case Constants::Billow: */
-    /*   noise_ = modulePtr(new noise::module::Billow); */
-    /*   break; */
+    case Constants::Random:
+      noise_ = std::shared_ptr<NoiseInterface>(new RandomNoise);
+      break;
     default:
       std::cout << "TODO" << std::endl;
     }
-    // and add to pool
-    noisePool_[algorithm] = noise_;
+    // and add to cache
+    noiseCache_[algorithm] = noise_;
   }
 
-  // tell tiles anout changes
+  // tell tiles about changes
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->updateAlgorithm(noise_);
   }
@@ -177,7 +178,7 @@ NoiseOptions TileManager::getOptions() {
 
 void TileManager::setTileAlgorithmOptions(const NoiseOptions &options) {
   noise_->setOptions(options);
-  // tell tiles anout changes
+  // tell tiles about changes
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->updateAlgorithm(noise_);
   }

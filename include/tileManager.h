@@ -21,7 +21,7 @@ class TileManager {
 
  private:
   int currentAlgorithm_;
-  std::map<int, std::shared_ptr<NoiseInterface>> noisePool_;
+  std::map<int, std::shared_ptr<NoiseInterface>> noiseCache_;
   std::shared_ptr<NoiseInterface> noise_;
   glm::vec3 currentPos_;
   glm::vec3 previousPos_;

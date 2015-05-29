@@ -280,21 +280,22 @@ void Game::showGui() {
   }
 
   // Algorithm Options
-  // TODO: show algorithm-specific options
   if (ImGui::CollapsingHeader("Algorithm Options")) {
     bool optsChanged = false;
 
-    // Options available for all algorithms
-    optsChanged |= (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
-    optsChanged |=
-        (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
-    optsChanged |= (ImGui::SliderInt("Octaves", &options_.octaveCount, 1, 6));
-    optsChanged |= (ImGui::SliderInt("Seed", &options_.seed, 1, 6));
+    // TODO: better handling of available options
+    if (algorithm != Constants::Random) {
 
-    // Options not available for every algorithm
-    if (algorithm != Constants::RidgedMulti) {
+      optsChanged |= (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
       optsChanged |=
+        (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
+      optsChanged |= (ImGui::SliderInt("Octaves", &options_.octaveCount, 1, 6));
+      optsChanged |= (ImGui::SliderInt("Seed", &options_.seed, 1, 6));
+
+      if (algorithm != Constants::RidgedMulti) {
+        optsChanged |=
           (ImGui::SliderFloat("Persistence", &options_.persistence, 0, 1));
+      }
     }
 
     if (optsChanged) {

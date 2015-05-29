@@ -14,6 +14,7 @@ struct NoiseOptions {
   int seed;
 };
 
+
 class NoiseInterface {
  public:
   virtual float getValue(const float &x, const float &y, const float &z) = 0;
@@ -26,6 +27,7 @@ class NoiseInterface {
   NoiseOptions options_;
 };
 
+
 class PerlinNoise : public NoiseInterface {
  public:
   PerlinNoise();
@@ -37,6 +39,7 @@ class PerlinNoise : public NoiseInterface {
   std::shared_ptr<noise::module::Perlin> noise_;
 };
 
+
 class RidgedMultiNoise : public NoiseInterface {
  public:
   RidgedMultiNoise();
@@ -46,4 +49,12 @@ class RidgedMultiNoise : public NoiseInterface {
 
  private:
   std::shared_ptr<noise::module::RidgedMulti> noise_;
+};
+
+
+class RandomNoise : public NoiseInterface {
+ public:
+  float getValue(const float &x, const float &y, const float &z);
+  void initializeOptions() {}
+  void setOptions(const NoiseOptions &options) {}
 };

@@ -4,6 +4,7 @@ NoiseOptions NoiseInterface::getOptions() {
   return options_;
 }
 
+
 // Perlin
 
 PerlinNoise::PerlinNoise() {
@@ -32,6 +33,7 @@ GLfloat PerlinNoise::getValue(const float &x, const float &y, const float &z) {
   return noise_->GetValue(x, y, z);
 }
 
+
 // RidgedMulti
 
 RidgedMultiNoise::RidgedMultiNoise() {
@@ -59,4 +61,12 @@ void RidgedMultiNoise::setOptions(const NoiseOptions &options) {
   noise_->SetLacunarity(options_.lacunarity);
   noise_->SetOctaveCount(options_.octaveCount);
   noise_->SetSeed(options_.seed);
+}
+
+
+// Random
+
+float RandomNoise::getValue(const float &x, const float &y, const float &z) {
+  // return random float between 0 and 1
+  return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 }

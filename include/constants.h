@@ -46,7 +46,7 @@ static const int Perlin = 0;
 static const int RidgedMulti = 1;
 static const int DiamondSquare = 2;
 static const int Billow = 3;
-static const int Random = 5;
+static const int Random = 4;
 
 // default width of terrain tile in triangles. Must be a factor of 2.
 static const GLuint TileWidth = 64;
