@@ -156,6 +156,9 @@ void TileManager::setTileAlgorithm(const int &algorithm) {
     case Constants::RidgedMulti:
       noise_ = std::shared_ptr<NoiseInterface>(new RidgedMultiNoise);
       break;
+    case Constants::Worley:
+      noise_ = std::shared_ptr<NoiseInterface>(new WorleyNoise);
+      break;
     case Constants::Random:
       noise_ = std::shared_ptr<NoiseInterface>(new RandomNoise);
       break;

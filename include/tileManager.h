@@ -7,6 +7,7 @@
 #include "tile.h"
 
 #include "noise.h"
+#include "worley.h"
 
 class TileManager {
 
