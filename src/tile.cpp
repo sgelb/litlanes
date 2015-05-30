@@ -143,7 +143,7 @@ void Tile::createVertices() {
       // use world space coordinates of x and z (mapped to [-1, 1]) to create
       // height generated with noise algorithm
       // y can be used as a seed
-      y = noise_->getValue(mapToInterval(worldX), 0.0f, mapToInterval(worldZ));
+      y = noise_->getValue(worldX, 0.0f, worldZ);
 
       // set position
       vertices_[idx].position =
@@ -196,12 +196,6 @@ std::vector<Vertex> Tile::getVertices() {
 std::vector<GLuint> Tile::getIndices() {
   /* return quadtree_->getIndicesOfLevel(Constants::MaximumLod); */
   return indices_;
-}
-
-GLfloat Tile::mapToInterval(const GLfloat &input) {
-  // FIXME: input can be negative, so we have to map from [INT_MIN, INT_MAX]
-  // map input from [0, Constants::TileWidth] to [-1, 1]
-  return 2 * (input / Constants::TileWidth) - 1;
 }
 
 void Tile::updateCoordinates(const int &x, const int &z) {

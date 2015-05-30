@@ -117,6 +117,5 @@ class Tile {
 
   void rotateLight();
 
-  GLfloat mapToInterval(const GLfloat &input);
   glm::vec3 colorFromHeight(const GLfloat &height);
 };

@@ -44,9 +44,8 @@ static const GLfloat Sensitivty = 0.5f;
 // noise algorithms
 static const int Perlin = 0;
 static const int RidgedMulti = 1;
-static const int DiamondSquare = 2;
-static const int Billow = 3;
-static const int Random = 4;
+static const int Billow = 2;
+static const int Random = 3;
 
 // default width of terrain tile in triangles. Must be a factor of 2.
 static const GLuint TileWidth = 64;

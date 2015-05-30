@@ -6,6 +6,9 @@
 #include <memory>
 #include <iostream>
 
+#include "constants.h"
+
+
 struct NoiseOptions {
   float frequency;
   float lacunarity;
@@ -25,6 +28,7 @@ class NoiseInterface {
 
  protected:
   NoiseOptions options_;
+  float mapToInterval(const float &input);
 };
 
 
@@ -58,3 +62,4 @@ class RandomNoise : public NoiseInterface {
   void initializeOptions() {}
   void setOptions(const NoiseOptions &options) {}
 };
+

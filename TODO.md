@@ -1,29 +1,13 @@
-## Codedesign
-
-- component pattern for terrain -> http://gameprogrammingpatterns.com/component.html
-- structure to implement and change terrain generating algorithms
-
-
 ## Features
 
 - lod with quadtree: ulrich-paper & http://chrisbrough.com
 - gui -> https://github.com/ocornut/imgui
 - (very) simple texture
-- shadows
 
 
 ## Next steps
 
-- refactor Terrain to Tile and create TileManager class
+- implement missing algorithms
 - create GUI class
-- infinite terrain/tiles generation: use GLint64 for coords?
-- keyboard shortcuts?
 - show grid of tiles?
-- add basic lighting: ambient + directional
-- add basic texture
-- refactor terrain: 
-    update terrain indices()
 - lod
-- hud for fps, camera position and other infos
-- gui
-- coordinate system hud

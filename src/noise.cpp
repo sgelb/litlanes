@@ -4,6 +4,12 @@ NoiseOptions NoiseInterface::getOptions() {
   return options_;
 }
 
+float NoiseInterface::mapToInterval(const float &input) {
+  // FIXME: input can be negative, so we have to map from [INT_MIN, INT_MAX]
+  // map input from [0, Constants::TileWidth] to [-1, 1]
+  return 2 * (input / Constants::TileWidth) - 1;
+}
+
 
 // Perlin
 
@@ -30,7 +36,7 @@ void PerlinNoise::setOptions(const NoiseOptions &options) {
 }
 
 GLfloat PerlinNoise::getValue(const float &x, const float &y, const float &z) {
-  return noise_->GetValue(x, y, z);
+  return noise_->GetValue(mapToInterval(x), y, mapToInterval(z));
 }
 
 
@@ -52,7 +58,7 @@ void RidgedMultiNoise::initializeOptions() {
 
 GLfloat RidgedMultiNoise::getValue(const float &x, const float &y,
                                    const float &z) {
-  return noise_->GetValue(x, y, z);
+  return noise_->GetValue(mapToInterval(x), y, mapToInterval(z));
 }
 
 void RidgedMultiNoise::setOptions(const NoiseOptions &options) {
@@ -70,3 +76,5 @@ float RandomNoise::getValue(const float &x, const float &y, const float &z) {
   // return random float between 0 and 1
   return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 }
+
+
