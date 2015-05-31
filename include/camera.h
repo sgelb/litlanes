@@ -57,6 +57,8 @@ class Camera {
 
   glm::vec3 getPosition();
 
+  void setMovementSpeed(const GLfloat &speed);
+
  private:
   // Camera Attributes
   glm::vec3 position_;

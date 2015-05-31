@@ -5,6 +5,7 @@
 #include <noise/noise.h>
 #include <memory>
 #include <iostream>
+#include <limits>
 
 #include "constants.h"
 
@@ -55,6 +56,16 @@ class RidgedMultiNoise : public NoiseInterface {
   std::shared_ptr<noise::module::RidgedMulti> noise_;
 };
 
+class VoronoiNoise : public NoiseInterface {
+ public:
+  VoronoiNoise();
+  float getValue(const float &x, const float &y, const float &z);
+  void initializeOptions();
+  void setOptions(const NoiseOptions &options);
+
+ private:
+  std::shared_ptr<noise::module::Voronoi> noise_;
+};
 
 class RandomNoise : public NoiseInterface {
  public:

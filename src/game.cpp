@@ -7,7 +7,7 @@ Game::Game() : keys_{false}, fillmode_{GL_FILL} {
   camera_ = Camera(glm::vec3(currentPos_.x, 60.0f, currentPos_.z));
   tileManager_ = TileManager();
   cameraFreeze_ = false;
-  guiClosed_ = true;
+  guiClosed_ = false;
 }
 
 int Game::run() {
@@ -255,6 +255,11 @@ void Game::showGui() {
     ImGui::BulletText("<F> freezes mouse");
   }
 
+  // Camera options
+  if (ImGui::CollapsingHeader("Camera")) {
+    /* (ImGui::SliderFloat("Speed", &camera_->speed, 1, 100)); */
+  }
+
   // Algorithm
   if (ImGui::CollapsingHeader("Algorithms")) {
 
@@ -265,9 +270,9 @@ void Game::showGui() {
 
     bool btnPressed = false;
     btnPressed |=
-        (ImGui::RadioButton("Perlin Noise", &algorithm, Constants::Perlin));
+      (ImGui::RadioButton("Perlin Noise", &algorithm, Constants::Perlin));
     btnPressed |= (ImGui::RadioButton("Ridged-Multifractal Noise", &algorithm,
-                                      Constants::RidgedMulti));
+          Constants::RidgedMulti));
     btnPressed |= (ImGui::RadioButton("Billow", &algorithm, Constants::Billow));
     btnPressed |= (ImGui::RadioButton("Worley", &algorithm, Constants::Worley));
     btnPressed |= (ImGui::RadioButton("Random", &algorithm, Constants::Random));
@@ -276,10 +281,8 @@ void Game::showGui() {
       tileManager_.setTileAlgorithm(algorithm);
       options_ = tileManager_.getOptions();
     }
-  }
 
-  // Algorithm Options
-  if (ImGui::CollapsingHeader("Algorithm Options")) {
+    // Algorithm Options
     bool optsChanged = false;
 
     // TODO: better handling of available options

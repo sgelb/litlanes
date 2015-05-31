@@ -36,7 +36,7 @@ static const GLfloat Zoom = 45.0f;
 static const GLfloat Yaw = -90.0f;
 static const GLfloat Pitch = 0.0f;
 static const GLfloat Speed = 60.0f;
-static const GLfloat Sensitivty = 0.5f;
+static const GLfloat Sensitivity = 0.5f;
 //@}
 
 // TERRAIN
@@ -52,7 +52,7 @@ static const int Worley = 4;
 static const GLuint TileWidth = 64;
 
 // max height of terrain mesh
-static const GLfloat MaxMeshHeight = TileWidth / 5;
+static const GLfloat MaxMeshHeight = TileWidth / 4;
 
 // LEVEL OF DETAIL
 

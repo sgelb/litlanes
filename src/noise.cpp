@@ -7,6 +7,7 @@ NoiseOptions NoiseInterface::getOptions() {
 float NoiseInterface::mapToInterval(const float &input) {
   // FIXME: input can be negative, so we have to map from [INT_MIN, INT_MAX]
   // map input from [0, Constants::TileWidth] to [-1, 1]
+  /* return input / std::numeric_limits<int>::max(); */
   return 2 * (input / Constants::TileWidth) - 1;
 }
 
@@ -68,6 +69,32 @@ void RidgedMultiNoise::setOptions(const NoiseOptions &options) {
   noise_->SetOctaveCount(options_.octaveCount);
   noise_->SetSeed(options_.seed);
 }
+
+
+// Voronoi
+
+// TODO: libnoise/src/module/voronoi.cpp: use nth closes point
+VoronoiNoise::VoronoiNoise() {
+  noise_ = std::shared_ptr<noise::module::Voronoi>(new noise::module::Voronoi);
+  noise_->EnableDistance(true);
+}
+
+GLfloat VoronoiNoise::getValue(const float &x, const float &y, const float &z) {
+  return noise_->GetValue(mapToInterval(x), y, mapToInterval(z));
+}
+
+void VoronoiNoise::initializeOptions() {
+  options_.frequency = 0.0f;
+  options_.lacunarity = 0;
+  options_.octaveCount = 0;
+  options_.persistence = 0;
+  options_.seed = noise::module::DEFAULT_VORONOI_SEED;
+}
+
+void VoronoiNoise::setOptions(const NoiseOptions &options) {
+  noise_->SetFrequency(options.frequency);
+  /* noise_->SetDisplacement(options.frequency); */
+};
 
 
 // Random

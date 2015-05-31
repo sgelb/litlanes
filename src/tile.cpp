@@ -140,15 +140,15 @@ void Tile::createVertices() {
       int worldX = xOffset_ + x;
       int worldZ = zOffset_ + z;
 
-      // use world space coordinates of x and z (mapped to [-1, 1]) to create
+      // use world space coordinates of x and z to create
       // height generated with noise algorithm
-      // y can be used as a seed
-      y = noise_->getValue(worldX, 0.0f, worldZ);
+      // result is float in [-1, 1], mapped to [0, Constants::MaxMeshHeight]
+      y = (noise_->getValue(worldX, 0.0f, worldZ) + 1) / 2 * Constants::MaxMeshHeight;
 
       // set position
       vertices_[idx].position =
           glm::vec3(static_cast<GLfloat>(worldX),
-                    static_cast<GLfloat>(Constants::MaxMeshHeight * y),
+                    static_cast<GLfloat>(y),
                     static_cast<GLfloat>(worldZ));
 
       // set color
@@ -164,22 +164,22 @@ void Tile::createIndices() {
 glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
   // simplified color model with 5 "height zones"
 
-  if (height > 0.9) {
+  if (height > 0.9 * Constants::MaxMeshHeight) {
     // snow
     glm::vec3 color = {0.8f, 0.8f, 0.8f};
     return color;
   }
-  if (height > 0.3) {
+  if (height > 0.6 * Constants::MaxMeshHeight) {
     // rock
     glm::vec3 color = {0.5f, 0.5f, 0.5f};
     return color;
   }
-  if (height > -0.5) {
+  if (height > 0.15 * Constants::MaxMeshHeight) {
     // forest
     glm::vec3 color = {0.2f, 0.4f, 0.25f};
     return color;
   }
-  if (height > -0.55) {
+  if (height > 0.1 * Constants::MaxMeshHeight) {
     // beach
     glm::vec3 color = {0.65f, 0.65f, 0.0f};
     return color;

@@ -51,7 +51,6 @@ set(SOURCES
   src/shader.cpp
   src/tile.cpp
   src/tileManager.cpp
-  src/worley.cpp
   )
 
 set(HEADER
@@ -70,7 +69,6 @@ set(HEADER
   include/shader.h
   include/tile.h
   include/tileManager.h
-  include/worley.h
   )
 
 set(SHADER
