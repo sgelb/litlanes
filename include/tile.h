@@ -94,7 +94,6 @@ class Tile {
   GLuint tileWidth_;
   std::shared_ptr<NoiseInterface> noise_;
   std::unique_ptr<Shader> shader_;
-  bool run_;
 
   std::vector<Vertex> vertices_;
   std::vector<GLuint> indices_;
@@ -110,8 +109,15 @@ class Tile {
   int zOffset_;
   glm::vec3 lightPos_;
 
+  std::vector<int> possibleRiverSprings_;
+  int riverSpring_;
+  std::vector<GLuint> riverCourse_;
+  int remainingRiverCapacity_;
+
   void createVertices();
   void createIndices();
+  void createRiver();
+  void calculateRiverCourse(const int &curLoc);
   void setupShader();
   void setupBuffers();
 

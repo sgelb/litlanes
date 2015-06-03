@@ -11,7 +11,6 @@ Game::Game() : fillmode_(GL_FILL) {
 }
 
 int Game::run() {
-  std::cout << "Key: " << keys_[123] << std::endl;
   // Initalize
   if (!initializeGlfw()) {
     return 1;

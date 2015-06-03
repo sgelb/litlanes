@@ -12,7 +12,7 @@ Tile::Tile(const int &x, const int &z,
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
   createVertices();
   createIndices();
-  run_ = true;
+  createRiver();
 }
 
 void Tile::setup() {
@@ -145,6 +145,11 @@ void Tile::createVertices() {
       // result is float in [-1, 1], mapped to [0, Constants::MaxMeshHeight]
       y = (noise_->getValue(worldX, 0.0f, worldZ) + 1) / 2 * Constants::MaxMeshHeight;
 
+      // remember idx if y >= Constants::MinimumHeightOfRiverSpring
+      if (y >= Constants::MinimumHeightOfRiverSpring) {
+        possibleRiverSprings_.push_back(idx);
+      }
+
       // set position
       vertices_[idx].position =
           glm::vec3(static_cast<GLfloat>(worldX),
@@ -159,6 +164,66 @@ void Tile::createVertices() {
 
 void Tile::createIndices() {
   indices_ = quadtree_->getIndicesOfLevel(Constants::MaximumLod);
+}
+
+void Tile::createRiver() {
+  if (possibleRiverSprings_.empty()) {
+    return;
+  }
+
+  // choose river spring from possibleRiverSprings_;
+  auto engine = std::default_random_engine{};
+  // always seed with same value. lucky number 9
+  engine.seed(vertices_[9].position.y);
+  std::shuffle(std::begin(possibleRiverSprings_),
+      std::end(possibleRiverSprings_), engine);
+  riverSpring_ = possibleRiverSprings_.front();
+  calculateRiverCourse(riverSpring_);
+}
+
+void Tile::calculateRiverCourse(const int &curIdx) {
+  // return/end this river, if we are at the tile's border
+  // TODO: let user choose between end conditions? i.e. maximum length, maximum
+  // tiles, ...
+  if (0 == static_cast<int>(vertices_[curIdx].position.x) % Constants::TileWidth ||
+      0 == static_cast<int>(vertices_[curIdx].position.z) % Constants::TileWidth ) {
+    return;
+  }
+
+  // find lowest neighboring vertice
+  float lowestHeight = Constants::MaxMeshHeight;
+  int nextIdx;
+
+  std::vector<int> neighbors = {
+    // row above
+    static_cast<int>(curIdx - Constants::TileWidth - 1),
+    static_cast<int>(curIdx - Constants::TileWidth),
+    static_cast<int>(curIdx - Constants::TileWidth + 1),
+    // same row
+    -1, 1,
+    // row below
+    static_cast<int>(curIdx + Constants::TileWidth - 1),
+    static_cast<int>(curIdx + Constants::TileWidth),
+    static_cast<int>(curIdx + Constants::TileWidth + 1)
+  };
+
+  for (int neighbor : neighbors) {
+      if (vertices_[neighbor].position.y < lowestHeight) {
+        lowestHeight = vertices_[neighbor].position.y;
+        nextIdx = neighbor;
+      }
+  }
+
+  if (lowestHeight == Constants::MaxMeshHeight) {
+    // no vertice was lower
+    // TODO: create lake?
+    return;
+  }
+  // add to riverCourse_ and set as currentLocation
+  riverCourse_.push_back(static_cast<GLuint>(nextIdx));
+
+  // call calculateRiverCourse(currentLocation)
+  calculateRiverCourse(nextIdx);
 }
 
 glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
