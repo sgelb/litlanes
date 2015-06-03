@@ -1,6 +1,6 @@
 #include "game.h"
 
-Game::Game() : keys_{false}, fillmode_{GL_FILL} {
+Game::Game() : fillmode_(GL_FILL) {
   // position camera in center of 3*3 tiles
   GLfloat coord = 3 * Constants::TileWidth / 2;
   currentPos_ = glm::vec3(coord, 0.0f, coord);
@@ -11,6 +11,7 @@ Game::Game() : keys_{false}, fillmode_{GL_FILL} {
 }
 
 int Game::run() {
+  std::cout << "Key: " << keys_[123] << std::endl;
   // Initalize
   if (!initializeGlfw()) {
     return 1;
@@ -162,6 +163,7 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
 int Game::initializeGlfw() {
   // Init GLFW
   if (!glfwInit()) {
+    std::cerr << "Could not initialize GLFW" << std::endl;
     return GL_FALSE;
   }
   // Set all the required options for GLFW
@@ -173,6 +175,10 @@ int Game::initializeGlfw() {
   // Create a GLFWwindow object that we can use for GLFW's functions
   window_ = glfwCreateWindow(Constants::WindowWidth, Constants::WindowHeight,
                              "litlanesfoss", nullptr, nullptr);
+  if (!window_) {
+    std::cerr << "Could not create GLFWwindow. Requires OpenGL 3.3 or higher." << std::endl;
+    return GL_FALSE;
+  }
   glfwMakeContextCurrent(window_);
 
   // Set the required callback functions

@@ -33,10 +33,11 @@ class Game {
   int run();
 
  private:
+  bool keys_[1024] = {false};
+
   Camera camera_;
   GLFWwindow *window_;
   TileManager tileManager_;
-  bool keys_[1024];
   bool guiClosed_;
   bool cameraFreeze_;
   GLfloat deltaTime_;
