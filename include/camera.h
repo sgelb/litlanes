@@ -57,6 +57,8 @@ class Camera {
 
   glm::vec3 getPosition();
 
+  void setMovementSpeed(const GLfloat &speed);
+
  private:
   // Camera Attributes
   glm::vec3 position_;
@@ -72,7 +74,6 @@ class Camera {
   // Camera options
   GLfloat movementSpeed_;
   GLfloat mouseSensitivity_;
-  GLfloat zoom_;
 
   // Calculates the front vector from the Camera's (updated) Eular Angles
   void updateCameraVectors();

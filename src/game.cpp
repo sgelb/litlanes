@@ -1,12 +1,17 @@
 #include "game.h"
 
-Game::Game() : keys_{false}, fillmode_{GL_FILL} {
-  camera_ = Camera(
-      glm::vec3(Constants::TileWidth / 2, 60.0f, Constants::TileWidth / 2));
+Game::Game() : fillmode_(GL_FILL) {
+  // position camera in center of 3*3 tiles
+  GLfloat coord = 3 * Constants::TileWidth / 2;
+  currentPos_ = glm::vec3(coord, 0.0f, coord);
+  camera_ = Camera(glm::vec3(currentPos_.x, 60.0f, currentPos_.z));
+  tileManager_ = TileManager();
+  cameraFreeze_ = false;
+  guiClosed_ = false;
 }
 
 int Game::run() {
-
+  std::cout << "Key: " << keys_[123] << std::endl;
   // Initalize
   if (!initializeGlfw()) {
     return 1;
@@ -15,12 +20,13 @@ int Game::run() {
     return 2;
   }
   initializeGl();
+  tileManager_.initialize(currentPos_);
+  options_ = tileManager_.getOptions();
 
-  initializeTiles();
+  ImGui_ImplGlfwGL3_Init(window_, false);
 
-  // Deltatime
-  deltaTime_ = 0.0f; // Time between current frame and last frame
-  lastFrame_ = 0.0f; // Time of last frame
+  deltaTime_ = 0.0f; // Time between current and last frame
+  lastFrame_ = 0.0f; // Time at last frame
   lastTime_ = 0.0f;  // Time since last fps-"second"
   frameCount_ = 0;
 
@@ -31,53 +37,48 @@ int Game::run() {
     deltaTime_ = currentTime - lastFrame_;
     lastFrame_ = currentTime;
 
-    // Print fps on stdout
-    /* printFps(); */
-
-    // Check for events and trigger callbacks
+    // Check for events
     glfwPollEvents();
+
+    // GUI
+    showGui();
+
+    // Move
     do_movement(deltaTime_);
 
-    // update camera position and create new tiles if neccessary
+    // Get current camera position
     getCurrentPosition();
-    updateTiles();
 
-    // Clear the colorbuffer
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    // Clear color- and depth buffer
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Update  and render terrains
-    for (size_t idx = 0; idx < terrains_.size(); idx++) {
-      terrains_[idx]->update(deltaTime_);
-      terrains_[idx]->render(camera_.getViewMatrix());
+    // Update and render tiles
+    tileManager_.update(currentPos_);
+    tileManager_.renderAll(deltaTime_, camera_.getViewMatrix());
+
+    // Render GUI
+    if (!guiClosed_) {
+      // ignore wireframe setting for gui
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      ImGui::Render();
+      glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
     }
 
     // Swap the screen buffers
     glfwSwapBuffers(window_);
   }
 
-  // Clean up terrain
-  for (size_t idx = 0; idx < terrains_.size(); idx++) {
-    terrains_[idx]->cleanup();
-  }
+  // Clean up imgui
+  ImGui_ImplGlfwGL3_Shutdown();
+
+  // Clean up tiles
+  tileManager_.cleanUp();
 
   // Terminate GLFW, clearing any resources allocated by GLFW.
   glfwDestroyWindow(window_);
   glfwTerminate();
   return 0;
-}
-
-void Game::printFps() {
-  // framerate count
-  frameCount_++;
-  lastTime_ += deltaTime_;
-
-  if (lastTime_ >= 1.0f) {
-    std::cout << frameCount_ << " fps, " << (1000.0f / frameCount_)
-              << "ms/frame" << std::endl;
-    frameCount_ = 0;
-    lastTime_ = 0.0f;
-  }
 }
 
 void Game::do_movement(const GLfloat &deltaTime) {
@@ -100,22 +101,30 @@ void Game::do_movement(const GLfloat &deltaTime) {
   if (keys_[GLFW_KEY_Q]) {
     camera_.processKeyboard(Camera::DOWN, deltaTime);
   }
-  if (keys_[GLFW_KEY_X]) {
-    fillmode_ = (fillmode_ == GL_FILL) ? GL_LINE : GL_FILL;
-    glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
-  }
 }
 
 // Is called whenever a key is pressed/released via GLFW
 void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
                         int mode) {
 
-  Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
-
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
   }
 
+  Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
+
+  // set commands
+  if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
+    game->toggleGui();
+  }
+  if (key == GLFW_KEY_X && action == GLFW_PRESS) {
+    game->toggleWireframe();
+  }
+  if (key == GLFW_KEY_F && action == GLFW_PRESS) {
+    game->toggleCameraFreeze();
+  }
+
+  // set movement keys.
   if (key >= 0 && key < 1024) {
     if (action == GLFW_PRESS) {
       game->keys_[key] = true;
@@ -131,6 +140,10 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   static GLfloat lastY;
 
   Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
+
+  if (ImGui::GetIO().WantCaptureMouse || game->cameraFreeze_) {
+    return;
+  }
 
   if (firstMouse) {
     lastX = static_cast<GLfloat>(xpos);
@@ -150,6 +163,7 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
 int Game::initializeGlfw() {
   // Init GLFW
   if (!glfwInit()) {
+    std::cerr << "Could not initialize GLFW" << std::endl;
     return GL_FALSE;
   }
   // Set all the required options for GLFW
@@ -161,12 +175,17 @@ int Game::initializeGlfw() {
   // Create a GLFWwindow object that we can use for GLFW's functions
   window_ = glfwCreateWindow(Constants::WindowWidth, Constants::WindowHeight,
                              "litlanesfoss", nullptr, nullptr);
+  if (!window_) {
+    std::cerr << "Could not create GLFWwindow. Requires OpenGL 3.3 or higher." << std::endl;
+    return GL_FALSE;
+  }
   glfwMakeContextCurrent(window_);
 
   // Set the required callback functions
   glfwSetWindowUserPointer(window_, this);
   glfwSetKeyCallback(window_, Game::key_callback);
   glfwSetCursorPosCallback(window_, Game::mouse_callback);
+  glfwSetMouseButtonCallback(window_, ImGui_ImplGlfwGL3_MouseButtonCallback);
 
   // GLFW Options
   glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -189,126 +208,108 @@ void Game::initializeGl() {
   glEnable(GL_CULL_FACE);
 }
 
-void Game::initializeTiles() {
+void Game::getCurrentPosition() {
+  /* previousPos_ = currentPos_; */
+  currentPos_.x = camera_.getPosition().x;
+  currentPos_.z = camera_.getPosition().z;
+}
 
-  // +----- x
-  // |0 1 2
-  // |3 4 5
-  // |6 7 8
-  // z
+void Game::toggleGui() {
+  guiClosed_ = !guiClosed_;
+}
 
-  for (size_t z = 0; z < 3; z++) {
-    for (size_t x = 0; x < 3; x++) {
-      std::shared_ptr<Terrain> terrain(new Terrain(x, z));
-      terrain->setup();
-      terrains_.push_back(std::move(terrain));
+void Game::toggleCameraFreeze() {
+  cameraFreeze_ = !cameraFreeze_;
+}
+
+void Game::toggleWireframe() {
+  // TODO: change shader to show wireframe in solid color?
+  fillmode_ = (fillmode_ == GL_FILL) ? GL_LINE : GL_FILL;
+  glPolygonMode(GL_FRONT_AND_BACK, fillmode_);
+}
+
+void Game::showGui() {
+  static int algorithm = Constants::Perlin;
+
+  if (guiClosed_) {
+    return;
+  }
+
+  ImGui_ImplGlfwGL3_NewFrame();
+  ImGui::BeginPopup(&guiClosed_);
+
+  // Style
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+  // Position
+  ImGui::SetWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
+
+  // FPS
+  ImGui::Text("Avg %.3f ms/frame (%.1f FPS)",
+              1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
+  // Current tile
+  int xTile = std::floor(currentPos_.x / Constants::TileWidth);
+  int zTile = std::floor(currentPos_.z / Constants::TileWidth);
+  ImGui::Text("Current tile: %i,%i", xTile, zTile);
+
+  // Keys
+  if (ImGui::CollapsingHeader("Keys")) {
+    ImGui::BulletText("<TAB> toggles GUI");
+    ImGui::BulletText("Move around with <A>, <S>, <D>, <W>, <E> and <Q>");
+    ImGui::BulletText("Look around with mouse");
+    ImGui::BulletText("<F> freezes mouse");
+  }
+
+  // Camera options
+  if (ImGui::CollapsingHeader("Camera")) {
+    /* (ImGui::SliderFloat("Speed", &camera_->speed, 1, 100)); */
+  }
+
+  // Algorithm
+  if (ImGui::CollapsingHeader("Algorithms")) {
+
+    // This code is not very readable, but i like it. | is the bitwise
+    // OR-operator. It returns true if at least one of the two compared bits is
+    // true. ImGui::RadioButton returns true if pressed. If this happens just
+    // once, btnPressed stays true, no matter the following results.
+
+    bool btnPressed = false;
+    btnPressed |=
+      (ImGui::RadioButton("Perlin Noise", &algorithm, Constants::Perlin));
+    btnPressed |= (ImGui::RadioButton("Ridged-Multifractal Noise", &algorithm,
+          Constants::RidgedMulti));
+    btnPressed |= (ImGui::RadioButton("Billow", &algorithm, Constants::Billow));
+    btnPressed |= (ImGui::RadioButton("Worley", &algorithm, Constants::Worley));
+    btnPressed |= (ImGui::RadioButton("Random", &algorithm, Constants::Random));
+
+    if (btnPressed) {
+      tileManager_.setTileAlgorithm(algorithm);
+      options_ = tileManager_.getOptions();
+    }
+
+    // Algorithm Options
+    bool optsChanged = false;
+
+    // TODO: better handling of available options
+    if (algorithm != Constants::Random) {
+
+      optsChanged |= (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
+      optsChanged |=
+        (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
+      optsChanged |= (ImGui::SliderInt("Octaves", &options_.octaveCount, 1, 6));
+      optsChanged |= (ImGui::SliderInt("Seed", &options_.seed, 1, 6));
+
+      if (algorithm != Constants::RidgedMulti) {
+        optsChanged |=
+          (ImGui::SliderFloat("Persistence", &options_.persistence, 0, 1));
+      }
+    }
+
+    if (optsChanged) {
+      tileManager_.setTileAlgorithmOptions(options_);
     }
   }
+
+  ImGui::EndPopup();
 }
-
-void Game::getCurrentPosition() {
-  previousPos_ = currentPos_;
-  currentPos_.x = camera_.getPosition().x;
-  currentPos_.y = camera_.getPosition().z;
-}
-
-void Game::updateTiles() {
-  int currentTileX = std::floor(currentPos_.x / Constants::TileWidth);
-  int currentTileY = std::floor(currentPos_.y / Constants::TileWidth);
-  int diffX = currentTileX - std::floor(previousPos_.x / Constants::TileWidth);
-  int diffY = currentTileY - std::floor(previousPos_.y / Constants::TileWidth);
-
-  // -------+-------+--------
-  // (1,-1) | (1,0) |  (1,1)      x > 0
-  // -------+-------+--------
-  // (0,-1) | (0,0) |  (0,1)      x = 0
-  // -------+-------+--------
-  // (-1,-1)| (-1,0)| (-1,-1)     x < 0
-  // -------+-------+--------
-  //
-  //  y < 0   y = 0    y > 0
-
-  if (diffX == 0 and diffY == 0) {
-    return; // we are still in middle tile, nothing to do
-  }
-
-  // std::shared_ptr<Terrain> terrain_:
-  // +----- x
-  // |0 1 2
-  // |3 4 5
-  // |6 7 8
-  // z
-
-  // Print current tile
-  printCurrentTile();
-
-  // Moving north
-  if (diffX > 0) {
-    // Move first two rows down
-    // 0 1 2      6 7 8
-    // 3 4 5  ->  0 1 2
-    // 6 7 8      3 4 5
-    std::rotate(terrains_.begin(), terrains_.begin() + 6, terrains_.end());
-
-    // Update first row
-    terrains_[0]->updateCoordinates(currentTileX + 1, currentTileY - 1);
-    terrains_[1]->updateCoordinates(currentTileX + 1, currentTileY);
-    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileY + 1);
-  }
-
-  // Moving south
-  if (diffX < 0) {
-    // Move last two rows up
-    // 0 1 2      3 4 5
-    // 3 4 5  ->  6 7 8
-    // 6 7 8      0 1 2
-    std::rotate(terrains_.begin(), terrains_.begin() + 3, terrains_.end());
-
-    // Update last row
-    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileY - 1);
-    terrains_[7]->updateCoordinates(currentTileX - 1, currentTileY);
-    terrains_[8]->updateCoordinates(currentTileX - 1, currentTileY + 1);
-  }
-
-  // Moving west
-  if (diffY < 0) {
-    // Move first two columns right
-    // 0 1 2      2 0 1
-    // 3 4 5  ->  5 3 4
-    // 6 7 8      8 6 7
-    std::rotate(terrains_.begin(), terrains_.begin() + 2,
-                terrains_.begin() + 3);
-    std::rotate(terrains_.begin() + 3, terrains_.begin() + 5,
-                terrains_.begin() + 6);
-    std::rotate(terrains_.begin() + 6, terrains_.begin() + 8, terrains_.end());
-
-    // Update first column
-    terrains_[0]->updateCoordinates(currentTileX + 1, currentTileY - 1);
-    terrains_[3]->updateCoordinates(currentTileX, currentTileY - 1);
-    terrains_[6]->updateCoordinates(currentTileX - 1, currentTileY - 1);
-  }
-
-  // Moving east
-  if (diffY > 0) {
-    // Move last two columns left
-    // 0 1 2      1 2 0
-    // 3 4 5  ->  4 5 3
-    // 6 7 8      7 8 6
-    std::rotate(terrains_.begin(), terrains_.begin() + 1,
-                terrains_.begin() + 3);
-    std::rotate(terrains_.begin() + 3, terrains_.begin() + 4,
-                terrains_.begin() + 6);
-    std::rotate(terrains_.begin() + 6, terrains_.begin() + 7, terrains_.end());
-
-    // Update last column
-    terrains_[2]->updateCoordinates(currentTileX + 1, currentTileY + 1);
-    terrains_[5]->updateCoordinates(currentTileX, currentTileY + 1);
-    terrains_[8]->updateCoordinates(currentTileX - 1, currentTileY + 1);
-  }
-}
-
-void Game::printCurrentTile() {
-  std::cout << std::floor(currentPos_.x / Constants::TileWidth) << ", "
-            << std::floor(currentPos_.y / Constants::TileWidth) << std::endl;
-}
-

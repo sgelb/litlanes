@@ -3,8 +3,7 @@
 Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch)
     : front_(glm::vec3(0.0f, 0.0f, -1.0f)),
       movementSpeed_(Constants::Speed),
-      mouseSensitivity_(Constants::Sensitivty),
-      zoom_(Constants::Zoom) {
+      mouseSensitivity_(Constants::Sensitivity) {
   position_ = position;
   worldUp_ = up;
   yaw_ = yaw;
@@ -86,4 +85,8 @@ void Camera::updateCameraVectors() {
 // Get current camera position
 glm::vec3 Camera::getPosition() {
   return position_;
+}
+
+void Camera::setMovementSpeed(const GLfloat &speed) {
+  movementSpeed_ = speed;
 }

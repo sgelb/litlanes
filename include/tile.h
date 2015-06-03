@@ -16,6 +16,7 @@
 #include "constants.h"
 #include "quadtree.h"
 #include "shader.h"
+#include "noise.h"
 
 /**
  * @brief Vertex defined by position and color
@@ -26,36 +27,31 @@ struct Vertex {
 };
 
 /**
- * @brief TODO: what is this class?
+ * @brief TODO
  */
-class Terrain {
+class Tile {
  public:
   /**
-   * @brief Construct terrain tile of provided size
+   * @brief Construct tile tile of provided size
    *
-   * @param tileWidth edge length of terrain tile
+   * @param tileWidth edge length of tile tile
    */
-  explicit Terrain(const int &x, const int &z,
-                   const GLuint &tileWidth = Constants::TileWidth);
+  explicit Tile(const int &x, const int &z,
+                const std::shared_ptr<NoiseInterface> &noise =
+                    std::shared_ptr<NoiseInterface>(new PerlinNoise),
+                const GLuint &tileWidth = Constants::TileWidth);
   /**
    * @brief Set up shader and opengl buffers
    */
   void setup();
 
   /**
-   * @brief Set algorithm for heightmap generation
-   *
-   * @param algorithm TODO: define in Constants
-   */
-  void setAlgorithm(const int &algorithm);
-
-  /**
-   * @brief Update terrain before rendering
+   * @brief Update tile before rendering
    */
   void update(const GLfloat &deltaTime);
 
   /**
-   * @brief Render terrain
+   * @brief Render tile
    *
    * @param view Viewing matrix for correct rendering
    */
@@ -75,25 +71,30 @@ class Terrain {
   void updateCoordinates(const int &x, const int &z);
 
   /**
-   * @brief Vertices of terrain mesh
+   * @brief Vertices of tile mesh
    *
    * @return vertices
    */
   std::vector<Vertex> getVertices();
 
   /**
-   * @brief Indices of vertices of terrain mesh
+   * @brief Indices of vertices of tile mesh
    *
    * @return indices
    */
   std::vector<GLuint> getIndices();
 
- private:
-  using modulePtr = std::unique_ptr<noise::module::Module>;
+  /**
+   * @brief Set new algorithm and update vertices
+   *
+   */
+  void updateAlgorithm(const std::shared_ptr<NoiseInterface> noise);
 
+ private:
   GLuint tileWidth_;
-  modulePtr noise_;
+  std::shared_ptr<NoiseInterface> noise_;
   std::unique_ptr<Shader> shader_;
+  bool run_;
 
   std::vector<Vertex> vertices_;
   std::vector<GLuint> indices_;
@@ -116,6 +117,5 @@ class Terrain {
 
   void rotateLight();
 
-  GLfloat mapToInterval(const GLfloat &input);
   glm::vec3 colorFromHeight(const GLfloat &height);
 };

@@ -6,12 +6,13 @@
 #include <ctime>
 
 #include <GL/glew.h>
-
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
+#include <imgui.h>
+#include <imgui_impl_glfw_gl3.h>
 
-#include "terrain.h"
+#include "tileManager.h"
 #include "constants.h"
 #include "camera.h"
 
@@ -32,27 +33,30 @@ class Game {
   int run();
 
  private:
+  bool keys_[1024] = {false};
+
   Camera camera_;
   GLFWwindow *window_;
-  bool keys_[1024];
+  TileManager tileManager_;
+  bool guiClosed_;
+  bool cameraFreeze_;
   GLfloat deltaTime_;
   GLfloat lastFrame_;
   GLfloat lastTime_;
   int frameCount_;
   GLenum fillmode_;
-  std::vector<std::shared_ptr<Terrain>> terrains_;
-  glm::vec2 previousPos_;
-  glm::vec2 currentPos_;
+  glm::vec3 currentPos_;
+  NoiseOptions options_;
 
   int initializeGlfw();
   int initializeGlew();
   void initializeGl();
-  void initializeTiles();
-  void updateTiles();
-  void printFps();
-  void printCurrentTile();
+  void toggleGui();
+  void toggleWireframe();
+  void toggleCameraFreeze();
   void getCurrentPosition();
   void do_movement(const GLfloat &deltaTime);
+  void showGui();
   static void key_callback(GLFWwindow *window, int key, int scancode,
                            int action, int mode);
   static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
