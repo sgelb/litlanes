@@ -21,6 +21,7 @@ void Tile::setup() {
   setupBuffers();
 }
 
+// can we put this into ShaderManager?
 void Tile::setupShader() {
   // Build and compile our shader program
   // TODO: proper loading of shaders
@@ -67,6 +68,7 @@ void Tile::setupBuffers() {
 }
 
 void Tile::update(const GLfloat &deltaTime) {
+  // right now, this just updates the light
   glm::mat4 rotationMat(1);
   rotationMat =
       glm::rotate(rotationMat, deltaTime * 0.5f, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -106,6 +108,7 @@ void Tile::cleanup() {
   // Properly de-allocate all resources once they've outlived their purpose
   glDeleteVertexArrays(1, &VAO_);
   glDeleteBuffers(1, &VBO_);
+  glDeleteBuffers(1, &EBO_);
 }
 
 void Tile::createVertices() {
@@ -177,22 +180,17 @@ void Tile::createRiver() {
   engine.seed(vertices_[9].position.y);
   std::shuffle(std::begin(possibleRiverSprings_),
       std::end(possibleRiverSprings_), engine);
-  riverSpring_ = possibleRiverSprings_.front();
-  calculateRiverCourse(riverSpring_);
+  calculateRiverCourse(possibleRiverSprings_.front());
 }
 
 void Tile::calculateRiverCourse(const int &curIdx) {
   // return/end this river, if we are at the tile's border
   // TODO: let user choose between end conditions? i.e. maximum length, maximum
   // tiles, ...
-  if (0 == static_cast<int>(vertices_[curIdx].position.x) % Constants::TileWidth ||
-      0 == static_cast<int>(vertices_[curIdx].position.z) % Constants::TileWidth ) {
-    return;
-  }
 
   // find lowest neighboring vertice
-  float lowestHeight = Constants::MaxMeshHeight;
-  int nextIdx;
+  float lowestHeight = vertices_[curIdx].position.y;
+  int nextIdx = -1;
 
   std::vector<int> neighbors = {
     // row above
@@ -200,7 +198,8 @@ void Tile::calculateRiverCourse(const int &curIdx) {
     static_cast<int>(curIdx - Constants::TileWidth),
     static_cast<int>(curIdx - Constants::TileWidth + 1),
     // same row
-    -1, 1,
+    curIdx - 1,
+    curIdx + 1,
     // row below
     static_cast<int>(curIdx + Constants::TileWidth - 1),
     static_cast<int>(curIdx + Constants::TileWidth),
@@ -208,17 +207,25 @@ void Tile::calculateRiverCourse(const int &curIdx) {
   };
 
   for (int neighbor : neighbors) {
-      if (vertices_[neighbor].position.y < lowestHeight) {
+    if (vertices_[neighbor].position.y < lowestHeight) {
+      if (neighbor >= 0 && curIdx < vertices_.size() - 1) {
         lowestHeight = vertices_[neighbor].position.y;
         nextIdx = neighbor;
       }
+    }
   }
 
-  if (lowestHeight == Constants::MaxMeshHeight) {
-    // no vertice was lower
-    // TODO: create lake?
+  if (nextIdx < 0 || nextIdx >= vertices_.size() - 1) {
+    // We are done
+    std::cout << "River course (" << riverCourse_.size() << "): ";
+    for (GLuint idx : riverCourse_) {
+      std::cout << idx << "->";
+    }
+    std::cout << std::endl;
+    std::cout << "----------" << std::endl;
     return;
   }
+
   // add to riverCourse_ and set as currentLocation
   riverCourse_.push_back(static_cast<GLuint>(nextIdx));
 
@@ -268,6 +275,7 @@ void Tile::updateCoordinates(const int &x, const int &z) {
   zOffset_ = z * Constants::TileWidth;
   createVertices();
   createIndices();
+  createRiver();
   setupBuffers();
 }
 
@@ -275,5 +283,6 @@ void Tile::updateAlgorithm(const std::shared_ptr<NoiseInterface> noise) {
   noise_ = noise;
   createVertices();
   createIndices();
+  createRiver();
   setupBuffers();
 }

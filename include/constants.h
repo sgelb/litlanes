@@ -56,7 +56,7 @@ static const GLuint TileWidth = 64;
 static const GLfloat MaxMeshHeight = TileWidth / 4;
 
 // minimum height of possible river springs
-static const GLfloat MinimumHeightOfRiverSpring = MaxMeshHeight * 0.8;
+static const GLfloat MinimumHeightOfRiverSpring = MaxMeshHeight * 0.9;
 
 // LEVEL OF DETAIL
 

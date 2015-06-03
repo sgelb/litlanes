@@ -122,6 +122,7 @@ void TileManager::renderAll(const GLfloat &deltaTime,
                             const glm::mat4 &viewMatrix) {
   // Update and render tiles
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
+    // right now, this just updates the light
     tiles_[idx]->update(deltaTime);
     tiles_[idx]->render(viewMatrix);
   }

@@ -110,7 +110,6 @@ class Tile {
   glm::vec3 lightPos_;
 
   std::vector<int> possibleRiverSprings_;
-  int riverSpring_;
   std::vector<GLuint> riverCourse_;
   int remainingRiverCapacity_;
 
