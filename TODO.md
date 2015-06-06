@@ -6,7 +6,7 @@
 
 ## Next steps
 
-- add sea level, change via options
+- animate sea in shader
 - implement missing algorithms
 - create GUI class
 - lod

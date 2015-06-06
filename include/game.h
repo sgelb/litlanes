@@ -39,6 +39,7 @@ class Game {
   GLFWwindow *window_;
   TileManager tileManager_;
   bool guiClosed_;
+  bool leftMouseBtnPressed_;
   bool cameraFreeze_;
   GLfloat deltaTime_;
   GLfloat lastFrame_;
@@ -57,7 +58,9 @@ class Game {
   void getCurrentPosition();
   void do_movement(const GLfloat &deltaTime);
   void showGui();
+  void setLeftMouseBtnPressed(bool isPressed);
   static void key_callback(GLFWwindow *window, int key, int scancode,
                            int action, int mode);
   static void mouse_callback(GLFWwindow *window, double xpos, double ypos);
+  static void mouseBtn_callback(GLFWwindow *window, int button, int action, int mod);
 };

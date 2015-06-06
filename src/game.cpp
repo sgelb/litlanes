@@ -8,6 +8,7 @@ Game::Game() : fillmode_(GL_FILL) {
   tileManager_ = TileManager();
   cameraFreeze_ = false;
   guiClosed_ = false;
+  leftMouseBtnPressed_ = false;
 }
 
 int Game::run() {
@@ -134,20 +135,21 @@ void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
 }
 
 void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
-  static bool firstMouse = true;
+  static bool resetMouse = true;
   static GLfloat lastX;
   static GLfloat lastY;
 
   Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
 
-  if (ImGui::GetIO().WantCaptureMouse || game->cameraFreeze_) {
+  if (ImGui::GetIO().WantCaptureMouse || !game->leftMouseBtnPressed_) {
+    resetMouse = true;
     return;
   }
 
-  if (firstMouse) {
+  if (resetMouse) {
     lastX = static_cast<GLfloat>(xpos);
     lastY = static_cast<GLfloat>(ypos);
-    firstMouse = false;
+    resetMouse = false;
   }
 
   GLfloat xoffset = xpos - lastX;
@@ -157,6 +159,32 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   lastY = static_cast<GLfloat>(ypos);
 
   game->camera_.processMouseMovement(xoffset, yoffset);
+}
+
+void Game::mouseBtn_callback(GLFWwindow *window, int button, int action,
+    int mods) {
+
+  if (ImGui::GetIO().WantCaptureMouse) {
+    return;
+  }
+
+  Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
+
+  if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT) {
+    game->setLeftMouseBtnPressed(true);
+    return;
+  }
+
+  if (action == GLFW_RELEASE) {
+    GLFWcursor* handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+    game->setLeftMouseBtnPressed(false);
+    return;
+  }
+
+}
+
+void Game::setLeftMouseBtnPressed(bool isPressed) {
+  leftMouseBtnPressed_ = isPressed;
 }
 
 int Game::initializeGlfw() {
@@ -184,7 +212,7 @@ int Game::initializeGlfw() {
   glfwSetWindowUserPointer(window_, this);
   glfwSetKeyCallback(window_, Game::key_callback);
   glfwSetCursorPosCallback(window_, Game::mouse_callback);
-  glfwSetMouseButtonCallback(window_, ImGui_ImplGlfwGL3_MouseButtonCallback);
+  glfwSetMouseButtonCallback(window_, Game::mouseBtn_callback);
 
   // GLFW Options
   glfwSetInputMode(window_, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
