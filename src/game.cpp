@@ -49,7 +49,7 @@ int Game::run() {
     getCurrentPosition();
 
     // Clear color- and depth buffer
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update and render tiles
@@ -205,6 +205,10 @@ void Game::initializeGl() {
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
+  glEnable(GL_PROGRAM_POINT_SIZE);
+  glEnable(GL_LINE_SMOOTH);
+  glLineWidth(30.0f);
+  glPointSize(20.0f);
 }
 
 void Game::getCurrentPosition() {
@@ -263,6 +267,13 @@ void Game::showGui() {
   // Camera options
   if (ImGui::CollapsingHeader("Camera")) {
     /* (ImGui::SliderFloat("Speed", &camera_->speed, 1, 100)); */
+  }
+
+  if (ImGui::CollapsingHeader("Map Options")) {
+    float seaLevel = tileManager_.getSeaLevel();
+    if (ImGui::SliderFloat("Sea level", &seaLevel, 0, Constants::MaxMeshHeight)) {
+      tileManager_.setSeaLevel(seaLevel);
+    }
   }
 
   // Algorithm

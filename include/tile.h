@@ -90,18 +90,29 @@ class Tile {
    */
   void updateAlgorithm(const std::shared_ptr<NoiseInterface> noise);
 
+  void setSeaLevel(const float &seaLevel);
+  float getSeaLevel();
+
  private:
   GLuint tileWidth_;
   std::shared_ptr<NoiseInterface> noise_;
   std::unique_ptr<Shader> shader_;
+  std::unique_ptr<Quadtree> quadtree_;
 
   std::vector<Vertex> vertices_;
-  std::vector<GLuint> indices_;
-  std::unique_ptr<Quadtree> quadtree_;
   GLuint verticesCount_;
-  GLuint VAO_; // Vertex Array Object
-  GLuint VBO_; // Vertex Buffer Object
-  GLuint EBO_; // Element Buffer Object
+
+  GLuint terrainVAO_; // Vertex Array Object
+  std::vector<GLuint> terrainIndices_;
+
+  GLuint riverVAO_; // Vertex Array Object
+  std::vector<GLuint> riverIndices_;
+
+  GLuint seaVAO_; // Vertex Array Object
+  std::vector<Vertex> seaVertices_;
+  std::vector<GLuint> seaIndices_;
+  float seaLevel_;
+
   GLint objectColorLoc_;
   GLint lightColorLoc_;
   GLint lightPosLoc_;
@@ -110,15 +121,20 @@ class Tile {
   glm::vec3 lightPos_;
 
   std::vector<int> possibleRiverSprings_;
-  std::vector<GLuint> riverCourse_;
   int remainingRiverCapacity_;
 
   void createVertices();
-  void createIndices();
+  void createTerrain();
   void createRiver();
+  void createSea();
+
   void calculateRiverCourse(const int &curLoc);
   void setupShader();
+
   void setupBuffers();
+  void setupTerrainBuffers();
+  void setupRiverBuffers();
+  void setupSeaBuffers();
 
   void rotateLight();
 

@@ -9,6 +9,7 @@ void TileManager::initialize(const glm::vec3 &currentPos) {
   noise_ = std::shared_ptr<NoiseInterface>(new PerlinNoise);
   // add to cache
   noiseCache_[Constants::Perlin] = noise_;
+  seaLevel_ = Constants::MaxMeshHeight / 5;
 
   // create first nine tiles, from (0,0) to (2,2)
   //
@@ -23,6 +24,7 @@ void TileManager::initialize(const glm::vec3 &currentPos) {
     for (int x = 0; x < 3; x++) {
       std::unique_ptr<Tile> tile(new Tile(x, z, noise_));
       tile->setup();
+      tile->setSeaLevel(seaLevel_);
       tiles_.push_back(std::move(tile));
     }
   }
@@ -185,5 +187,16 @@ void TileManager::setTileAlgorithmOptions(const NoiseOptions &options) {
   // tell tiles about changes
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->updateAlgorithm(noise_);
+  }
+}
+
+float TileManager::getSeaLevel() {
+  return seaLevel_;
+}
+
+void TileManager::setSeaLevel(const float &seaLevel) {
+  seaLevel_ = seaLevel;
+  for (size_t idx = 0; idx < tiles_.size(); idx++) {
+    tiles_[idx]->setSeaLevel(seaLevel_);
   }
 }

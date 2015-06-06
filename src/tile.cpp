@@ -1,5 +1,7 @@
 #include "tile.h"
 
+// TODO: refactor into Terrain and River?
+
 Tile::Tile(const int &x, const int &z,
            const std::shared_ptr<NoiseInterface> &noise,
            const GLuint &tileWidth)
@@ -10,9 +12,11 @@ Tile::Tile(const int &x, const int &z,
   // initialize tile
   verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
+  possibleRiverSprings_.clear();
   createVertices();
-  createIndices();
+  createTerrain();
   createRiver();
+  createSea();
 }
 
 void Tile::setup() {
@@ -37,21 +41,31 @@ void Tile::setupShader() {
 }
 
 void Tile::setupBuffers() {
+  setupTerrainBuffers();
+  setupRiverBuffers();
+  setupSeaBuffers();
+}
+
+
+// TODO: DRY for buffer setup
+void Tile::setupTerrainBuffers() {
   // Bind VAO first,
-  glGenVertexArrays(1, &VAO_);
-  glBindVertexArray(VAO_);
+  glGenVertexArrays(1, &terrainVAO_);
+  glBindVertexArray(terrainVAO_);
 
   // then bind and set vertex buffers
-  glGenBuffers(1, &VBO_);
-  glBindBuffer(GL_ARRAY_BUFFER, VBO_);
-  glBufferData(GL_ARRAY_BUFFER, vertices_.size() * sizeof(Vertex),
+  GLuint terrainVBO;  // Vertex Buffer Object
+  glGenBuffers(1, &terrainVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, terrainVBO);
+  glBufferData(GL_ARRAY_BUFFER, verticesCount_ * sizeof(Vertex),
                &vertices_.front(), GL_STATIC_DRAW);
 
   // the element buffer
-  glGenBuffers(1, &EBO_);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO_);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices_.size() * sizeof(GLuint),
-               &indices_.front(), GL_STATIC_DRAW);
+  GLuint terrainEBO;  // Element Buffer Object
+  glGenBuffers(1, &terrainEBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, terrainEBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, terrainIndices_.size() * sizeof(GLuint),
+               &terrainIndices_.front(), GL_STATIC_DRAW);
 
   // Position attribute
   glEnableVertexAttribArray(0);
@@ -66,6 +80,74 @@ void Tile::setupBuffers() {
   // Unbind buffers/arrays to prevent strange bugs
   glBindVertexArray(0);
 }
+
+void Tile::setupRiverBuffers() {
+  // Bind VAO first,
+  glGenVertexArrays(1, &riverVAO_);
+  glBindVertexArray(riverVAO_);
+
+  // then bind and set vertex buffers
+  GLuint riverVBO;  // Vertex Buffer Object
+  glGenBuffers(1, &riverVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, riverVBO);
+  glBufferData(GL_ARRAY_BUFFER, verticesCount_ * sizeof(Vertex),
+               &vertices_.front(), GL_STATIC_DRAW);
+
+  // the element buffer
+  GLuint riverEBO;  // Element Buffer Object
+  glGenBuffers(1, &riverEBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, riverEBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, riverIndices_.size() * sizeof(GLuint),
+               &riverIndices_.front(), GL_STATIC_DRAW);
+
+  // Position attribute
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<GLvoid *>(0));
+
+  // Color attribute
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<GLvoid *>(offsetof(Vertex, color)));
+
+  // Unbind buffers/arrays to prevent strange bugs
+  glBindVertexArray(0);
+
+}
+
+void Tile::setupSeaBuffers() {
+  // Bind VAO first,
+  glGenVertexArrays(1, &seaVAO_);
+  glBindVertexArray(seaVAO_);
+
+  // then bind and set vertex buffers
+  GLuint seaVBO;  // Vertex Buffer Object
+  glGenBuffers(1, &seaVBO);
+  glBindBuffer(GL_ARRAY_BUFFER, seaVBO);
+  glBufferData(GL_ARRAY_BUFFER, seaVertices_.size() * sizeof(Vertex),
+               &seaVertices_.front(), GL_STATIC_DRAW);
+
+  // the element buffer
+  GLuint seaEBO;  // Element Buffer Object
+  glGenBuffers(1, &seaEBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, seaEBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, seaIndices_.size() * sizeof(GLuint),
+               &seaIndices_.front(), GL_STATIC_DRAW);
+
+  // Position attribute
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<GLvoid *>(0));
+
+  // Color attribute
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<GLvoid *>(offsetof(Vertex, color)));
+
+  // Unbind buffers/arrays to prevent strange bugs
+  glBindVertexArray(0);
+}
+
 
 void Tile::update(const GLfloat &deltaTime) {
   // right now, this just updates the light
@@ -99,16 +181,26 @@ void Tile::render(const glm::mat4 &view) {
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
   // Finally, draw tile elements
-  glBindVertexArray(VAO_);
-  glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, nullptr);
+  glBindVertexArray(terrainVAO_);
+  glDrawElements(GL_TRIANGLES, terrainIndices_.size(), GL_UNSIGNED_INT, nullptr);
+  glBindVertexArray(0);
+
+  // TODO: better rendering
+  // FIXME: find error. off by one?
+  /* glBindVertexArray(riverVAO_); */
+  /* /1* glDrawElements(GL_POINTS, riverIndices_.size(), GL_UNSIGNED_INT, nullptr); *1/ */
+  /* glDrawElements(GL_LINES, riverIndices_.size(), GL_UNSIGNED_INT, nullptr); */
+  /* glBindVertexArray(0); */
+
+  // Draw sea level
+  glBindVertexArray(seaVAO_);
+  glDrawElements(GL_TRIANGLES, seaIndices_.size(), GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 }
 
 void Tile::cleanup() {
   // Properly de-allocate all resources once they've outlived their purpose
-  glDeleteVertexArrays(1, &VAO_);
-  glDeleteBuffers(1, &VBO_);
-  glDeleteBuffers(1, &EBO_);
+  glDeleteVertexArrays(1, &terrainVAO_);
 }
 
 void Tile::createVertices() {
@@ -165,14 +257,16 @@ void Tile::createVertices() {
   }
 }
 
-void Tile::createIndices() {
-  indices_ = quadtree_->getIndicesOfLevel(Constants::MaximumLod);
+void Tile::createTerrain() {
+  terrainIndices_ = quadtree_->getIndicesOfLevel(Constants::MaximumLod);
 }
 
 void Tile::createRiver() {
   if (possibleRiverSprings_.empty()) {
     return;
   }
+
+  riverIndices_.clear();
 
   // choose river spring from possibleRiverSprings_;
   auto engine = std::default_random_engine{};
@@ -181,6 +275,43 @@ void Tile::createRiver() {
   std::shuffle(std::begin(possibleRiverSprings_),
       std::end(possibleRiverSprings_), engine);
   calculateRiverCourse(possibleRiverSprings_.front());
+}
+
+void Tile::createSea() {
+  // create seaVertices
+  seaVertices_ = std::vector<Vertex>(verticesCount_);
+
+  auto engine = std::default_random_engine{};
+  engine.seed(vertices_[9].position.y);
+  std::uniform_real_distribution<float> distribution(0.0, 0.3);
+
+  int idx = 0;
+  size_t width = tileWidth_ + 1;
+  GLfloat y;
+
+  // type of z and x is "signed int" instead of "unsigned size_t", so we don't
+  // have to cast back to a signed type before calculating coordinates.
+  for (int z = 0; z < width; z++) {
+    for (int x = 0; x < width; x++) {
+      idx = z * width + x;
+
+      int worldX = xOffset_ + x;
+      int worldZ = zOffset_ + z;
+
+      // set position
+      seaVertices_[idx].position =
+          glm::vec3(static_cast<GLfloat>(worldX),
+                    static_cast<GLfloat>(seaLevel_ + distribution(engine)),
+                    static_cast<GLfloat>(worldZ));
+
+      // set color
+      seaVertices_[idx].color = glm::vec3{0.0f, 0.5f, 1.0f};
+    }
+  }
+
+  // create seaIndices
+  /* seaIndices_ = {0, 1, 3, 0, 3, 2}; */
+  seaIndices_ = terrainIndices_;
 }
 
 void Tile::calculateRiverCourse(const int &curIdx) {
@@ -192,6 +323,7 @@ void Tile::calculateRiverCourse(const int &curIdx) {
   float lowestHeight = vertices_[curIdx].position.y;
   int nextIdx = -1;
 
+  // TODO: is this right?
   std::vector<int> neighbors = {
     // row above
     static_cast<int>(curIdx - Constants::TileWidth - 1),
@@ -207,27 +339,26 @@ void Tile::calculateRiverCourse(const int &curIdx) {
   };
 
   for (int neighbor : neighbors) {
+    // low enough?
     if (vertices_[neighbor].position.y < lowestHeight) {
-      if (neighbor >= 0 && curIdx < vertices_.size() - 1) {
+      // on this tile?
+      if (neighbor >= 0 && neighbor < verticesCount_) {
         lowestHeight = vertices_[neighbor].position.y;
         nextIdx = neighbor;
       }
     }
   }
 
-  if (nextIdx < 0 || nextIdx >= vertices_.size() - 1) {
-    // We are done
-    std::cout << "River course (" << riverCourse_.size() << "): ";
-    for (GLuint idx : riverCourse_) {
-      std::cout << idx << "->";
-    }
-    std::cout << std::endl;
-    std::cout << "----------" << std::endl;
+  if (nextIdx < 0 || nextIdx >= verticesCount_) {
+    // We are done for now
     return;
   }
+  std::cout << curIdx << ": ";
+  std::cout << nextIdx << "-";
+  std::cout << std::endl;
 
-  // add to riverCourse_ and set as currentLocation
-  riverCourse_.push_back(static_cast<GLuint>(nextIdx));
+  // add to riverIndices_ and set as currentLocation
+  riverIndices_.push_back(static_cast<GLuint>(nextIdx));
 
   // call calculateRiverCourse(currentLocation)
   calculateRiverCourse(nextIdx);
@@ -251,13 +382,8 @@ glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
     glm::vec3 color = {0.2f, 0.4f, 0.25f};
     return color;
   }
-  if (height > 0.1 * Constants::MaxMeshHeight) {
-    // beach
-    glm::vec3 color = {0.65f, 0.65f, 0.0f};
-    return color;
-  }
-  // water
-  glm::vec3 color = {0.0f, 0.5f, 1.0f};
+  // gras
+  glm::vec3 color = {0.2f, 0.6f, 0.25f};
   return color;
 }
 
@@ -267,22 +393,34 @@ std::vector<Vertex> Tile::getVertices() {
 
 std::vector<GLuint> Tile::getIndices() {
   /* return quadtree_->getIndicesOfLevel(Constants::MaximumLod); */
-  return indices_;
+  // used for testing
+  return terrainIndices_;
 }
 
 void Tile::updateCoordinates(const int &x, const int &z) {
   xOffset_ = x * Constants::TileWidth;
   zOffset_ = z * Constants::TileWidth;
   createVertices();
-  createIndices();
+  createTerrain();
   createRiver();
+  createSea();
   setupBuffers();
 }
 
 void Tile::updateAlgorithm(const std::shared_ptr<NoiseInterface> noise) {
   noise_ = noise;
   createVertices();
-  createIndices();
+  createTerrain();
   createRiver();
   setupBuffers();
+}
+
+void Tile::setSeaLevel(const float &seaLevel) {
+  seaLevel_ = seaLevel;
+  createSea();
+  setupSeaBuffers();
+}
+
+float Tile::getSeaLevel() {
+  return seaLevel_;
 }

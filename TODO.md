@@ -6,6 +6,7 @@
 
 ## Next steps
 
+- add sea level, change via options
 - implement missing algorithms
 - create GUI class
 - lod
