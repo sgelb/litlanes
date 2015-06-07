@@ -1,7 +1,5 @@
 #include "tile.h"
 
-// TODO: refactor into Terrain and River?
-
 Tile::Tile(const int &x, const int &z,
            const std::shared_ptr<NoiseInterface> &noise,
            const GLuint &tileWidth)
@@ -28,7 +26,6 @@ void Tile::setup() {
 // can we put this into ShaderManager?
 void Tile::setupShader() {
   // Build and compile our shader program
-  // TODO: proper loading of shaders
   shader_ = std::unique_ptr<Shader>(
       new Shader("shader/default.vert", "shader/default.frag"));
 
@@ -42,10 +39,8 @@ void Tile::setupShader() {
 
 void Tile::setupBuffers() {
   setupTerrainBuffers();
-  setupRiverBuffers();
   setupSeaBuffers();
 }
-
 
 // TODO: DRY for buffer setup
 void Tile::setupTerrainBuffers() {
@@ -79,40 +74,6 @@ void Tile::setupTerrainBuffers() {
 
   // Unbind buffers/arrays to prevent strange bugs
   glBindVertexArray(0);
-}
-
-void Tile::setupRiverBuffers() {
-  // Bind VAO first,
-  glGenVertexArrays(1, &riverVAO_);
-  glBindVertexArray(riverVAO_);
-
-  // then bind and set vertex buffers
-  GLuint riverVBO;  // Vertex Buffer Object
-  glGenBuffers(1, &riverVBO);
-  glBindBuffer(GL_ARRAY_BUFFER, riverVBO);
-  glBufferData(GL_ARRAY_BUFFER, verticesCount_ * sizeof(Vertex),
-               &vertices_.front(), GL_STATIC_DRAW);
-
-  // the element buffer
-  GLuint riverEBO;  // Element Buffer Object
-  glGenBuffers(1, &riverEBO);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, riverEBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, riverIndices_.size() * sizeof(GLuint),
-               &riverIndices_.front(), GL_STATIC_DRAW);
-
-  // Position attribute
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        reinterpret_cast<GLvoid *>(0));
-
-  // Color attribute
-  glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        reinterpret_cast<GLvoid *>(offsetof(Vertex, color)));
-
-  // Unbind buffers/arrays to prevent strange bugs
-  glBindVertexArray(0);
-
 }
 
 void Tile::setupSeaBuffers() {
@@ -185,13 +146,6 @@ void Tile::render(const glm::mat4 &view) {
   glDrawElements(GL_TRIANGLES, terrainIndices_.size(), GL_UNSIGNED_INT, nullptr);
   glBindVertexArray(0);
 
-  // TODO: better rendering
-  // FIXME: find error. off by one?
-  /* glBindVertexArray(riverVAO_); */
-  /* /1* glDrawElements(GL_POINTS, riverIndices_.size(), GL_UNSIGNED_INT, nullptr); *1/ */
-  /* glDrawElements(GL_LINES, riverIndices_.size(), GL_UNSIGNED_INT, nullptr); */
-  /* glBindVertexArray(0); */
-
   // Draw sea level
   glBindVertexArray(seaVAO_);
   glDrawElements(GL_TRIANGLES, seaIndices_.size(), GL_UNSIGNED_INT, nullptr);
@@ -201,6 +155,7 @@ void Tile::render(const glm::mat4 &view) {
 void Tile::cleanup() {
   // Properly de-allocate all resources once they've outlived their purpose
   glDeleteVertexArrays(1, &terrainVAO_);
+  glDeleteVertexArrays(1, &seaVAO_);
 }
 
 void Tile::createVertices() {
@@ -225,6 +180,7 @@ void Tile::createVertices() {
   int idx = 0;
   size_t width = tileWidth_ + 1;
   GLfloat y;
+  possibleRiverSprings_.clear();
 
   // type of z and x is "signed int" instead of "unsigned size_t", so we don't
   // have to cast back to a signed type before calculating coordinates.
@@ -266,8 +222,6 @@ void Tile::createRiver() {
     return;
   }
 
-  riverIndices_.clear();
-
   // choose river spring from possibleRiverSprings_;
   auto engine = std::default_random_engine{};
   // always seed with same value. lucky number 9
@@ -275,6 +229,64 @@ void Tile::createRiver() {
   std::shuffle(std::begin(possibleRiverSprings_),
       std::end(possibleRiverSprings_), engine);
   calculateRiverCourse(possibleRiverSprings_.front());
+  for (GLuint riverIdx : riverIndices_) {
+    vertices_[riverIdx].color = glm::vec3{0.0f, 0.5f, 1.0f};
+  }
+}
+
+void Tile::calculateRiverCourse(const int &curIdx) {
+
+  /* we look at neighboring vertices and add the lowest to river. what defines
+   * as neigbour depends on the kind of grid and how the river is rendered.
+
+    N--N--+   a neigbor of X shares an edge, so all Ns are neighbors of X.
+    |\ |\ |
+    | \| \|
+    N--X--N
+    |\ |\ |
+    | \| \|
+    +--N--N
+
+  */
+
+  // find lowest neighboring vertice
+  float lowestHeight = vertices_[curIdx].position.y;
+  int nextIdx = -1;
+
+  int w = tileWidth_ + 1;
+  std::vector<int> neighbors = {
+    // row above
+    static_cast<int>(curIdx - w - 1),
+    static_cast<int>(curIdx - w),
+    // same row
+    curIdx - 1,
+    curIdx + 1,
+    // row below
+    static_cast<int>(curIdx + w),
+    static_cast<int>(curIdx + w + 1)
+  };
+
+  for (int neighbor : neighbors) {
+    // low enough?
+    if (vertices_[neighbor].position.y <= lowestHeight) {
+      // on this tile?
+      if (neighbor >= 0 && neighbor < verticesCount_) {
+        lowestHeight = vertices_[neighbor].position.y;
+        nextIdx = neighbor;
+      }
+    }
+  }
+
+  if (nextIdx < 0 || nextIdx >= verticesCount_) {
+    // River ends if no neighbour is lower or is at tile border
+    return;
+  }
+
+  // add to riverIndices_
+  riverIndices_.push_back(static_cast<GLuint>(nextIdx));
+
+  // call calculateRiverCourse(currentLocation)
+  calculateRiverCourse(nextIdx);
 }
 
 void Tile::createSea() {
@@ -310,59 +322,9 @@ void Tile::createSea() {
   }
 
   // create seaIndices
-  /* seaIndices_ = {0, 1, 3, 0, 3, 2}; */
   seaIndices_ = terrainIndices_;
 }
 
-void Tile::calculateRiverCourse(const int &curIdx) {
-  // return/end this river, if we are at the tile's border
-  // TODO: let user choose between end conditions? i.e. maximum length, maximum
-  // tiles, ...
-
-  // find lowest neighboring vertice
-  float lowestHeight = vertices_[curIdx].position.y;
-  int nextIdx = -1;
-
-  // TODO: is this right?
-  std::vector<int> neighbors = {
-    // row above
-    static_cast<int>(curIdx - Constants::TileWidth - 1),
-    static_cast<int>(curIdx - Constants::TileWidth),
-    static_cast<int>(curIdx - Constants::TileWidth + 1),
-    // same row
-    curIdx - 1,
-    curIdx + 1,
-    // row below
-    static_cast<int>(curIdx + Constants::TileWidth - 1),
-    static_cast<int>(curIdx + Constants::TileWidth),
-    static_cast<int>(curIdx + Constants::TileWidth + 1)
-  };
-
-  for (int neighbor : neighbors) {
-    // low enough?
-    if (vertices_[neighbor].position.y < lowestHeight) {
-      // on this tile?
-      if (neighbor >= 0 && neighbor < verticesCount_) {
-        lowestHeight = vertices_[neighbor].position.y;
-        nextIdx = neighbor;
-      }
-    }
-  }
-
-  if (nextIdx < 0 || nextIdx >= verticesCount_) {
-    // We are done for now
-    return;
-  }
-  std::cout << curIdx << ": ";
-  std::cout << nextIdx << "-";
-  std::cout << std::endl;
-
-  // add to riverIndices_ and set as currentLocation
-  riverIndices_.push_back(static_cast<GLuint>(nextIdx));
-
-  // call calculateRiverCourse(currentLocation)
-  calculateRiverCourse(nextIdx);
-}
 
 glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
   // simplified color model with 5 "height zones"
@@ -392,7 +354,6 @@ std::vector<Vertex> Tile::getVertices() {
 }
 
 std::vector<GLuint> Tile::getIndices() {
-  /* return quadtree_->getIndicesOfLevel(Constants::MaximumLod); */
   // used for testing
   return terrainIndices_;
 }

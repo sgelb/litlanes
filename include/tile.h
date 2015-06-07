@@ -85,12 +85,24 @@ class Tile {
   std::vector<GLuint> getIndices();
 
   /**
-   * @brief Set new algorithm and update vertices
+   * @brief Change noise algorithm
    *
+   * @param noise
    */
   void updateAlgorithm(const std::shared_ptr<NoiseInterface> noise);
 
+  /**
+   * @brief Set sea level
+   *
+   * @param seaLevel
+   */
   void setSeaLevel(const float &seaLevel);
+
+  /**
+   * @brief Get sea level
+   *
+   * @return sea level
+   */
   float getSeaLevel();
 
  private:
@@ -105,7 +117,6 @@ class Tile {
   GLuint terrainVAO_; // Vertex Array Object
   std::vector<GLuint> terrainIndices_;
 
-  GLuint riverVAO_; // Vertex Array Object
   std::vector<GLuint> riverIndices_;
 
   GLuint seaVAO_; // Vertex Array Object
@@ -133,7 +144,6 @@ class Tile {
 
   void setupBuffers();
   void setupTerrainBuffers();
-  void setupRiverBuffers();
   void setupSeaBuffers();
 
   void rotateLight();
