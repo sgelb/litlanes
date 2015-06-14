@@ -105,6 +105,13 @@ class Tile {
    */
   float getSeaLevel();
 
+  /**
+   * @brief Set visibility of sea
+   *
+   * @param bool showSea
+   */
+  void setShowSea(bool showSea);
+
  private:
   GLuint tileWidth_;
   std::shared_ptr<NoiseInterface> noise_;
@@ -122,6 +129,7 @@ class Tile {
   std::vector<Vertex> seaVertices_;
   std::vector<GLuint> seaIndices_;
   float seaLevel_;
+  bool showSea_;
 
   GLint objectColorLoc_;
   GLint lightColorLoc_;
@@ -130,15 +138,11 @@ class Tile {
   int zOffset_;
   glm::vec3 lightPos_;
 
-  std::vector<int> possibleRiverSprings_;
-  int remainingRiverCapacity_;
-
   void createVertices();
   void createTerrain();
-  void createRiver();
   void createSea();
 
-  void calculateRiverCourse(const int &curLoc);
+  void calculateRiverCourse(const int &curLoc, const int &remainingLength);
   void setupShader();
 
   void setupBuffers();
@@ -148,4 +152,6 @@ class Tile {
   void rotateLight();
 
   glm::vec3 colorFromHeight(const GLfloat &height);
+  float getHeightAtNeighborIndex(const int &curIdx, const int &neighborIdx);
+  glm::vec3 calculateCoordinates(const int &curIdx, const int &neighborIdx);
 };

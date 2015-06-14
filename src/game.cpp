@@ -4,9 +4,8 @@ Game::Game() : fillmode_(GL_FILL) {
   // position camera in center of 3*3 tiles
   GLfloat coord = 3 * Constants::TileWidth / 2;
   currentPos_ = glm::vec3(coord, 0.0f, coord);
-  camera_ = Camera(glm::vec3(currentPos_.x, 60.0f, currentPos_.z));
+  camera_ = Camera(glm::vec3(currentPos_.x, 3.5*Constants::TileWidth, currentPos_.z));
   tileManager_ = TileManager();
-  cameraFreeze_ = false;
   guiClosed_ = false;
   leftMouseBtnPressed_ = false;
 }
@@ -23,7 +22,7 @@ int Game::run() {
   tileManager_.initialize(currentPos_);
   options_ = tileManager_.getOptions();
 
-  ImGui_ImplGlfwGL3_Init(window_, false);
+  ImGui_ImplGlfwGL3_Init(window_, true);
 
   deltaTime_ = 0.0f; // Time between current and last frame
   lastFrame_ = 0.0f; // Time at last frame
@@ -50,7 +49,7 @@ int Game::run() {
     getCurrentPosition();
 
     // Clear color- and depth buffer
-    glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+    glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update and render tiles
@@ -113,15 +112,16 @@ void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
 
   Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
 
+  if (ImGui::GetIO().WantCaptureKeyboard) {
+    return;
+  }
+
   // set commands
   if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
     game->toggleGui();
   }
   if (key == GLFW_KEY_X && action == GLFW_PRESS) {
     game->toggleWireframe();
-  }
-  if (key == GLFW_KEY_F && action == GLFW_PRESS) {
-    game->toggleCameraFreeze();
   }
 
   // set movement keys.
@@ -161,12 +161,9 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   game->camera_.processMouseMovement(xoffset, yoffset);
 }
 
+
 void Game::mouseBtn_callback(GLFWwindow *window, int button, int action,
     int mods) {
-
-  if (ImGui::GetIO().WantCaptureMouse) {
-    return;
-  }
 
   Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
 
@@ -233,10 +230,6 @@ void Game::initializeGl() {
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
-  glEnable(GL_PROGRAM_POINT_SIZE);
-  glEnable(GL_LINE_SMOOTH);
-  glLineWidth(30.0f);
-  glPointSize(20.0f);
 }
 
 void Game::getCurrentPosition() {
@@ -247,10 +240,6 @@ void Game::getCurrentPosition() {
 
 void Game::toggleGui() {
   guiClosed_ = !guiClosed_;
-}
-
-void Game::toggleCameraFreeze() {
-  cameraFreeze_ = !cameraFreeze_;
 }
 
 void Game::toggleWireframe() {
@@ -286,39 +275,48 @@ void Game::showGui() {
 
   // Keys
   if (ImGui::CollapsingHeader("Keys")) {
-    ImGui::BulletText("<TAB> toggles GUI");
-    ImGui::BulletText("Move around with <A>, <S>, <D>, <W>, <E> and <Q>");
-    ImGui::BulletText("Look around with mouse");
-    ImGui::BulletText("<F> freezes mouse");
+    ImGui::BulletText("Hold left mouse button to look around");
+    ImGui::BulletText("Move with <A>, <S>, <D>, <W>, <E> and <Q>");
+    ImGui::BulletText("<TAB> hides/shows this menu");
   }
 
   // Camera options
-  if (ImGui::CollapsingHeader("Camera")) {
-    /* (ImGui::SliderFloat("Speed", &camera_->speed, 1, 100)); */
-  }
+  /* if (ImGui::CollapsingHeader("Camera")) { */
+  /*   (ImGui::SliderFloat("Speed", &camera_->speed, 1, 100)); */
+  /* } */
 
   if (ImGui::CollapsingHeader("Map Options")) {
+    bool showSea = tileManager_.getShowSea();
     float seaLevel = tileManager_.getSeaLevel();
-    if (ImGui::SliderFloat("Sea level", &seaLevel, 0, Constants::MaxMeshHeight)) {
-      tileManager_.setSeaLevel(seaLevel);
+
+    if (ImGui::Checkbox("Show sea", &showSea)) {
+      tileManager_.setShowSea(showSea);
     }
+
+    if (showSea) {
+      if (ImGui::SliderFloat("Sea level", &seaLevel, 0, Constants::MaxMeshHeight)) {
+        tileManager_.setSeaLevel(seaLevel);
+      }
+    }
+
   }
 
   // Algorithm
   if (ImGui::CollapsingHeader("Algorithms")) {
 
-    // This code is not very readable, but i like it. | is the bitwise
-    // OR-operator. It returns true if at least one of the two compared bits is
-    // true. ImGui::RadioButton returns true if pressed. If this happens just
-    // once, btnPressed stays true, no matter the following results.
+    // This code to test if an option is set is not very readable, but i like
+    // it. | is the bitwise OR-operator. It returns true if at least one of the
+    // two compared bits is true. ImGui::RadioButton returns true if pressed.
+    // If this happens just once, btnPressed stays true, no matter the
+    // following results.
 
     bool btnPressed = false;
     btnPressed |=
-      (ImGui::RadioButton("Perlin Noise", &algorithm, Constants::Perlin));
+      (ImGui::RadioButton("Perlin Noise / fBm", &algorithm, Constants::Perlin));
     btnPressed |= (ImGui::RadioButton("Ridged-Multifractal Noise", &algorithm,
           Constants::RidgedMulti));
-    btnPressed |= (ImGui::RadioButton("Billow", &algorithm, Constants::Billow));
-    btnPressed |= (ImGui::RadioButton("Random", &algorithm, Constants::Random));
+    btnPressed |= (ImGui::RadioButton("Billow Noise", &algorithm, Constants::Billow));
+    btnPressed |= (ImGui::RadioButton("Random Noise", &algorithm, Constants::Random));
 
     if (btnPressed) {
       tileManager_.setTileAlgorithm(algorithm);
@@ -328,14 +326,13 @@ void Game::showGui() {
     // Algorithm Options
     bool optsChanged = false;
 
-    // TODO: better handling of available options
+    // TODO: better handling of available options for different algorithms
     if (algorithm != Constants::Random) {
-
+      optsChanged |= (ImGui::InputInt("Seed", &options_.seed, 1));
       optsChanged |= (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
       optsChanged |=
         (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
       optsChanged |= (ImGui::SliderInt("Octaves", &options_.octaveCount, 1, 6));
-      optsChanged |= (ImGui::SliderInt("Seed", &options_.seed, 1, 6));
 
       if (algorithm != Constants::RidgedMulti) {
         optsChanged |=

@@ -29,7 +29,7 @@ class NoiseInterface {
 
  protected:
   NoiseOptions options_;
-  float mapToInterval(const float &input);
+  float applyResolution(const float &input);
 };
 
 

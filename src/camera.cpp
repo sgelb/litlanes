@@ -11,14 +11,12 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch)
   updateCameraVectors();
 }
 
-// Returns the view matrix calculated using Eular Angles and the LookAt Matrix
+// return the view matrix 
 glm::mat4 Camera::getViewMatrix() {
   return glm::lookAt(position_, position_ + front_, up_);
 }
 
-// Processes input received from any keyboard-like input system. Accepts input
-// parameter in the form of camera defined ENUM (to abstract it from windowing
-// systems)
+// processes keyboard movement, moves camera position
 void Camera::processKeyboard(CameraMovement direction, GLfloat deltaTime) {
   GLfloat velocity_ = movementSpeed_ * deltaTime;
 
@@ -46,8 +44,7 @@ void Camera::processKeyboard(CameraMovement direction, GLfloat deltaTime) {
   }
 }
 
-// Processes input received from a mouse input system. Expects the offset
-// value in both the x and y direction.
+// processes mouse input, changes camera angle
 void Camera::processMouseMovement(GLfloat xoffset, GLfloat yoffset) {
   xoffset *= mouseSensitivity_;
   yoffset *= mouseSensitivity_;
@@ -63,26 +60,23 @@ void Camera::processMouseMovement(GLfloat xoffset, GLfloat yoffset) {
     pitch_ = -89.0f;
   }
 
-  // Update Front, Right and Up Vectors using the updated Eular angles
   updateCameraVectors();
 }
 
-// Calculates the front vector from the Camera's (updated) Eular Angles
 void Camera::updateCameraVectors() {
-  // Calculate the new Front vector
+  // calculate the new front_ vector
   glm::vec3 front;
   front.x = cos(glm::radians(yaw_)) * cos(glm::radians(pitch_));
   front.y = sin(glm::radians(pitch_));
   front.z = sin(glm::radians(yaw_)) * cos(glm::radians(pitch_));
   front_ = glm::normalize(front);
-  // Also re-calculate the Right and Up vector
+
+  // calculate new values for right_ and up_
   right_ = glm::normalize(glm::cross(front_, worldUp_));
-  // Normalize the vectors, because their length gets closer to 0 the more you
-  // look up or down which results in slower movement.
   up_ = glm::normalize(glm::cross(right_, front_));
 }
 
-// Get current camera position
+// get current camera position
 glm::vec3 Camera::getPosition() {
   return position_;
 }

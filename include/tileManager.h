@@ -20,6 +20,8 @@ class TileManager {
   void setTileAlgorithmOptions(const NoiseOptions &options);
   float getSeaLevel();
   void setSeaLevel(const float &seaLevel);
+  bool getShowSea();
+  void setShowSea(bool showSea);
 
  private:
   int currentAlgorithm_;
@@ -29,6 +31,7 @@ class TileManager {
   glm::vec3 previousPos_;
   std::vector<std::unique_ptr<Tile>> tiles_;
   float seaLevel_;
+  bool showSea_;
 
   void setNoise(const int &algorithm);
   void updatePosition();

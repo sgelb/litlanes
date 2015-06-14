@@ -10,10 +10,8 @@ Tile::Tile(const int &x, const int &z,
   // initialize tile
   verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
-  possibleRiverSprings_.clear();
   createVertices();
   createTerrain();
-  createRiver();
   createSea();
 }
 
@@ -136,7 +134,6 @@ void Tile::render(const glm::mat4 &view) {
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
   // Calculate the model matrix and pass it to shader before drawing
-  // TODO: what is happening here
   glm::mat4 model;
   model = glm::translate(model, glm::vec3(-0.5f, 0.0f, -0.5f));
   glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -147,9 +144,11 @@ void Tile::render(const glm::mat4 &view) {
   glBindVertexArray(0);
 
   // Draw sea level
-  glBindVertexArray(seaVAO_);
-  glDrawElements(GL_TRIANGLES, seaIndices_.size(), GL_UNSIGNED_INT, nullptr);
-  glBindVertexArray(0);
+  if (showSea_) {
+    glBindVertexArray(seaVAO_);
+    glDrawElements(GL_TRIANGLES, seaIndices_.size(), GL_UNSIGNED_INT, nullptr);
+    glBindVertexArray(0);
+  }
 }
 
 void Tile::cleanup() {
@@ -180,7 +179,6 @@ void Tile::createVertices() {
   int idx = 0;
   size_t width = tileWidth_ + 1;
   GLfloat y;
-  possibleRiverSprings_.clear();
 
   // type of z and x is "signed int" instead of "unsigned size_t", so we don't
   // have to cast back to a signed type before calculating coordinates.
@@ -191,15 +189,10 @@ void Tile::createVertices() {
       int worldX = xOffset_ + x;
       int worldZ = zOffset_ + z;
 
-      // use world space coordinates of x and z to create
-      // height generated with noise algorithm
-      // result is float in [-1, 1], mapped to [0, Constants::MaxMeshHeight]
-      y = (noise_->getValue(worldX, 0.0f, worldZ) + 1) / 2 * Constants::MaxMeshHeight;
-
-      // remember idx if y >= Constants::MinimumHeightOfRiverSpring
-      if (y >= Constants::MinimumHeightOfRiverSpring) {
-        possibleRiverSprings_.push_back(idx);
-      }
+      // use world space coordinates of x and z to create height generated with
+      // noise algorithm
+      y = (noise_->getValue(worldX, 0.0f, worldZ) + 1) / 2 *
+        Constants::MaxMeshHeight;
 
       // set position
       vertices_[idx].position =
@@ -217,85 +210,13 @@ void Tile::createTerrain() {
   terrainIndices_ = quadtree_->getIndicesOfLevel(Constants::MaximumLod);
 }
 
-void Tile::createRiver() {
-  if (possibleRiverSprings_.empty()) {
-    return;
-  }
-
-  // choose river spring from possibleRiverSprings_;
-  auto engine = std::default_random_engine{};
-  // always seed with same value. lucky number 9
-  engine.seed(vertices_[9].position.y);
-  std::shuffle(std::begin(possibleRiverSprings_),
-      std::end(possibleRiverSprings_), engine);
-  calculateRiverCourse(possibleRiverSprings_.front());
-  for (GLuint riverIdx : riverIndices_) {
-    vertices_[riverIdx].color = glm::vec3{0.0f, 0.5f, 1.0f};
-  }
-}
-
-void Tile::calculateRiverCourse(const int &curIdx) {
-
-  /* we look at neighboring vertices and add the lowest to river. what defines
-   * as neigbour depends on the kind of grid and how the river is rendered.
-
-    N--N--+   a neigbor of X shares an edge, so all Ns are neighbors of X.
-    |\ |\ |
-    | \| \|
-    N--X--N
-    |\ |\ |
-    | \| \|
-    +--N--N
-
-  */
-
-  // find lowest neighboring vertice
-  float lowestHeight = vertices_[curIdx].position.y;
-  int nextIdx = -1;
-
-  int w = tileWidth_ + 1;
-  std::vector<int> neighbors = {
-    // row above
-    static_cast<int>(curIdx - w - 1),
-    static_cast<int>(curIdx - w),
-    // same row
-    curIdx - 1,
-    curIdx + 1,
-    // row below
-    static_cast<int>(curIdx + w),
-    static_cast<int>(curIdx + w + 1)
-  };
-
-  for (int neighbor : neighbors) {
-    // low enough?
-    if (vertices_[neighbor].position.y <= lowestHeight) {
-      // on this tile?
-      if (neighbor >= 0 && neighbor < verticesCount_) {
-        lowestHeight = vertices_[neighbor].position.y;
-        nextIdx = neighbor;
-      }
-    }
-  }
-
-  if (nextIdx < 0 || nextIdx >= verticesCount_) {
-    // River ends if no neighbour is lower or is at tile border
-    return;
-  }
-
-  // add to riverIndices_
-  riverIndices_.push_back(static_cast<GLuint>(nextIdx));
-
-  // call calculateRiverCourse(currentLocation)
-  calculateRiverCourse(nextIdx);
+void Tile::setShowSea(bool showSea) {
+  showSea_ = showSea;
 }
 
 void Tile::createSea() {
   // create seaVertices
   seaVertices_ = std::vector<Vertex>(verticesCount_);
-
-  auto engine = std::default_random_engine{};
-  engine.seed(vertices_[9].position.y);
-  std::uniform_real_distribution<float> distribution(0.0, 0.3);
 
   int idx = 0;
   size_t width = tileWidth_ + 1;
@@ -310,10 +231,13 @@ void Tile::createSea() {
       int worldX = xOffset_ + x;
       int worldZ = zOffset_ + z;
 
+      // just to get some coherent height into it.
+      float yOffset = 0.3*std::sin(1.2*worldX) * std::sin(1.3*worldZ);
+
       // set position
       seaVertices_[idx].position =
           glm::vec3(static_cast<GLfloat>(worldX),
-                    static_cast<GLfloat>(seaLevel_ + distribution(engine)),
+                    static_cast<GLfloat>(seaLevel_ + yOffset),
                     static_cast<GLfloat>(worldZ));
 
       // set color
@@ -327,7 +251,7 @@ void Tile::createSea() {
 
 
 glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
-  // simplified color model with 5 "height zones"
+  // very simple color model with 5 "height zones"
 
   if (height > 0.9 * Constants::MaxMeshHeight) {
     // snow
@@ -363,7 +287,6 @@ void Tile::updateCoordinates(const int &x, const int &z) {
   zOffset_ = z * Constants::TileWidth;
   createVertices();
   createTerrain();
-  createRiver();
   createSea();
   setupBuffers();
 }
@@ -372,7 +295,6 @@ void Tile::updateAlgorithm(const std::shared_ptr<NoiseInterface> noise) {
   noise_ = noise;
   createVertices();
   createTerrain();
-  createRiver();
   setupBuffers();
 }
 
@@ -384,4 +306,40 @@ void Tile::setSeaLevel(const float &seaLevel) {
 
 float Tile::getSeaLevel() {
   return seaLevel_;
+}
+
+float Tile::getHeightAtNeighborIndex(const int &curIdx, const int &neighborIdx) {
+  // return height at neighborIdx
+
+  if (neighborIdx >= 0 && neighborIdx < verticesCount_) {
+    // neighborIdx is on same tile, just return height from vertices_
+    return vertices_[neighborIdx].position.y;
+  }
+
+  // neighborIdx is on another tile, calculate coordinates and return height
+  glm::vec3 coordinates = calculateCoordinates(curIdx, neighborIdx);
+  return (noise_->getValue(coordinates.x, 0.0f, coordinates.z) + 1) / 2 * Constants::MaxMeshHeight;
+}
+
+glm::vec3 Tile::calculateCoordinates(const int &curIdx, const int &neighborIdx) {
+  float x = 0.0f;
+  float z = 0.0f;
+  int difference = neighborIdx - curIdx;
+
+  if (difference < 1) {
+    x = vertices_[curIdx].position.x + difference + tileWidth_ + 1;
+    z = vertices_[curIdx].position.z - 1;
+  }
+
+  if (1 == abs(difference)) {
+    x = vertices_[curIdx].position.x + difference;
+    z = vertices_[curIdx].position.z;
+  }
+
+  if (difference > 1) {
+    x = vertices_[curIdx].position.x + difference - tileWidth_ - 1;
+    z = vertices_[curIdx].position.z + 1;
+  }
+
+  return glm::vec3(x, 0.0f, z);
 }

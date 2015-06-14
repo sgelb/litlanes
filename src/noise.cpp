@@ -4,11 +4,8 @@ NoiseOptions NoiseInterface::getOptions() {
   return options_;
 }
 
-float NoiseInterface::mapToInterval(const float &input) {
-  // FIXME: input can be negative, so we have to map from [INT_MIN, INT_MAX]
-  // map input from [0, Constants::TileWidth] to [-1, 1]
-  /* return input / std::numeric_limits<int>::max(); */
-  return 2 * (input / Constants::TileWidth) - 1;
+float NoiseInterface::applyResolution(const float &input) {
+  return input / Constants::Resolution;
 }
 
 
@@ -37,7 +34,7 @@ void PerlinNoise::setOptions(const NoiseOptions &options) {
 }
 
 GLfloat PerlinNoise::getValue(const float &x, const float &y, const float &z) {
-  return noise_->GetValue(mapToInterval(x), y, mapToInterval(z));
+  return noise_->GetValue(applyResolution(x), y, applyResolution(z));
 }
 
 
@@ -59,7 +56,7 @@ void RidgedMultiNoise::initializeOptions() {
 
 GLfloat RidgedMultiNoise::getValue(const float &x, const float &y,
                                    const float &z) {
-  return noise_->GetValue(mapToInterval(x), y, mapToInterval(z));
+  return noise_->GetValue(applyResolution(x), y, applyResolution(z));
 }
 
 void RidgedMultiNoise::setOptions(const NoiseOptions &options) {
@@ -79,7 +76,7 @@ BillowNoise::BillowNoise() {
 }
 
 GLfloat BillowNoise::getValue(const float &x, const float &y, const float &z) {
-  return noise_->GetValue(mapToInterval(x), y, mapToInterval(z));
+  return noise_->GetValue(applyResolution(x), y, applyResolution(z));
 }
 
 void BillowNoise::initializeOptions() {

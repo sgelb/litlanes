@@ -34,7 +34,7 @@ static const GLfloat FarPlane = 1000.0f;
  */
 static const GLfloat Zoom = 45.0f;
 static const GLfloat Yaw = -90.0f;
-static const GLfloat Pitch = 0.0f;
+static const GLfloat Pitch = -90.0f;
 static const GLfloat Speed = 60.0f;
 static const GLfloat Sensitivity = 0.5f;
 //@}
@@ -46,21 +46,25 @@ static const int Perlin = 0;
 static const int RidgedMulti = 1;
 static const int Billow = 2;
 static const int Random = 3;
-static const int Worley = 4;
-
 
 // default width of terrain tile in triangles. Must be a factor of 2.
 static const GLuint TileWidth = 64;
 
+// default resolution
+static const GLuint Resolution  = 64;
+
 // max height of terrain mesh
-static const GLfloat MaxMeshHeight = TileWidth / 4;
+static const GLfloat MaxMeshHeight = Resolution / 2;
 
 // minimum height of possible river springs
 static const GLfloat MinimumHeightOfRiverSpring = MaxMeshHeight * 0.9;
 
+// RIVER
+static const int MaximumRiverLength = 100;
+static const int RiversPerTile = 1;
+
 // LEVEL OF DETAIL
 
 static const int MaximumLod = log2(Constants::TileWidth);
-/* static const std::vector<int> LodDistances = {800, 400, 100}; */
 
 } // namespace Constants

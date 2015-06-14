@@ -6,7 +6,13 @@
 
 ## Next steps
 
+- rivers can flow between tiles
+- add options for:
+  - tile size
+  - number of tiles
+- color models
+- skybox
+- fog
 - animate sea in shader
-- implement missing algorithms
 - create GUI class
 - lod

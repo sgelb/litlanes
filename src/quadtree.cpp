@@ -39,7 +39,7 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
   // create bounding box
   boundingBox_ = std::unique_ptr<BoundingBox>(
       new BoundingBox(glm::vec3(static_cast<float>((tr - tl)) / 2.0f,
-                                0.0f, // TODO: include correct y-value
+                                0.0f,
                                 static_cast<float>((bl - tl)) / 2.0f),
                       static_cast<float>(offset) / 2.0f));
 
@@ -72,17 +72,6 @@ bool Quadtree::isLeaf() {
 }
 
 std::vector<GLuint> Quadtree::getIndicesOfLevel(const int &lod) {
-  // TODO: move into correct update method
-  // return false if boundingbox is not in sphere(lod)
-  // return true if not in frustum
-  //
-  // return true and add indices if isLeaf
-  // else
-  //  add indices if boundingbox is not in sphere(lod+1)
-  //  else
-  //  for every child:  add indices if not getindicesoflevel(child, lod+1)
-  // return true
-
   if (isLeaf_ || level_ == lod) {
     return indices_;
   }
