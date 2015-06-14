@@ -159,20 +159,20 @@ void TileManager::setTileAlgorithm(const int &algorithm) {
     case Constants::RidgedMulti:
       noise_ = std::shared_ptr<NoiseInterface>(new RidgedMultiNoise);
       break;
-    case Constants::Worley:
-      noise_ = std::shared_ptr<NoiseInterface>(new VoronoiNoise);
+    case Constants::Billow:
+      noise_ = std::shared_ptr<NoiseInterface>(new BillowNoise);
       break;
     case Constants::Random:
       noise_ = std::shared_ptr<NoiseInterface>(new RandomNoise);
       break;
     default:
-      std::cout << "TODO" << std::endl;
+      std::cerr << "Error: unknown algorithm " << algorithm << std::endl;
     }
     // and add to cache
     noiseCache_[algorithm] = noise_;
   }
 
-  // tell tiles about changes
+  // update tiles
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->updateAlgorithm(noise_);
   }
@@ -184,7 +184,7 @@ NoiseOptions TileManager::getOptions() {
 
 void TileManager::setTileAlgorithmOptions(const NoiseOptions &options) {
   noise_->setOptions(options);
-  // tell tiles about changes
+  // update tiles
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->updateAlgorithm(noise_);
   }

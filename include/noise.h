@@ -56,15 +56,15 @@ class RidgedMultiNoise : public NoiseInterface {
   std::shared_ptr<noise::module::RidgedMulti> noise_;
 };
 
-class VoronoiNoise : public NoiseInterface {
+class BillowNoise : public NoiseInterface {
  public:
-  VoronoiNoise();
+  BillowNoise();
   float getValue(const float &x, const float &y, const float &z);
   void initializeOptions();
   void setOptions(const NoiseOptions &options);
 
  private:
-  std::shared_ptr<noise::module::Voronoi> noise_;
+  std::shared_ptr<noise::module::Billow> noise_;
 };
 
 class RandomNoise : public NoiseInterface {

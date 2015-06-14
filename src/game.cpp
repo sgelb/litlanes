@@ -318,7 +318,6 @@ void Game::showGui() {
     btnPressed |= (ImGui::RadioButton("Ridged-Multifractal Noise", &algorithm,
           Constants::RidgedMulti));
     btnPressed |= (ImGui::RadioButton("Billow", &algorithm, Constants::Billow));
-    btnPressed |= (ImGui::RadioButton("Worley", &algorithm, Constants::Worley));
     btnPressed |= (ImGui::RadioButton("Random", &algorithm, Constants::Random));
 
     if (btnPressed) {

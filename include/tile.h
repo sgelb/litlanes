@@ -116,7 +116,6 @@ class Tile {
 
   GLuint terrainVAO_; // Vertex Array Object
   std::vector<GLuint> terrainIndices_;
-
   std::vector<GLuint> riverIndices_;
 
   GLuint seaVAO_; // Vertex Array Object

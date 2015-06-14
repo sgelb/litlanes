@@ -71,29 +71,32 @@ void RidgedMultiNoise::setOptions(const NoiseOptions &options) {
 }
 
 
-// Voronoi
+// Billow
 
-// TODO: libnoise/src/module/voronoi.cpp: use nth closes point
-VoronoiNoise::VoronoiNoise() {
-  noise_ = std::shared_ptr<noise::module::Voronoi>(new noise::module::Voronoi);
-  noise_->EnableDistance(true);
+BillowNoise::BillowNoise() {
+  noise_ = std::shared_ptr<noise::module::Billow>(new noise::module::Billow);
+  initializeOptions();
 }
 
-GLfloat VoronoiNoise::getValue(const float &x, const float &y, const float &z) {
+GLfloat BillowNoise::getValue(const float &x, const float &y, const float &z) {
   return noise_->GetValue(mapToInterval(x), y, mapToInterval(z));
 }
 
-void VoronoiNoise::initializeOptions() {
-  options_.frequency = 0.0f;
-  options_.lacunarity = 0;
-  options_.octaveCount = 0;
-  options_.persistence = 0;
-  options_.seed = noise::module::DEFAULT_VORONOI_SEED;
+void BillowNoise::initializeOptions() {
+  options_.frequency = noise::module::DEFAULT_BILLOW_FREQUENCY;
+  options_.lacunarity = noise::module::DEFAULT_BILLOW_LACUNARITY;
+  options_.octaveCount = noise::module::DEFAULT_BILLOW_OCTAVE_COUNT;
+  options_.persistence = noise::module::DEFAULT_BILLOW_PERSISTENCE;
+  options_.seed = noise::module::DEFAULT_BILLOW_SEED;
 }
 
-void VoronoiNoise::setOptions(const NoiseOptions &options) {
-  noise_->SetFrequency(options.frequency);
-  /* noise_->SetDisplacement(options.frequency); */
+void BillowNoise::setOptions(const NoiseOptions &options) {
+  options_ = options;
+  noise_->SetFrequency(options_.frequency);
+  noise_->SetLacunarity(options_.lacunarity);
+  noise_->SetOctaveCount(options_.octaveCount);
+  noise_->SetPersistence(options_.persistence);
+  noise_->SetSeed(options_.seed);
 };
 
 
