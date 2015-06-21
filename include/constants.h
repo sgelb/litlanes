@@ -34,7 +34,7 @@ static const GLfloat FarPlane = 1000.0f;
  */
 static const GLfloat Zoom = 45.0f;
 static const GLfloat Yaw = -90.0f;
-static const GLfloat Pitch = -90.0f;
+static const GLfloat Pitch = -89.0f;
 static const GLfloat Speed = 60.0f;
 static const GLfloat Sensitivity = 0.5f;
 //@}
