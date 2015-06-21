@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "constants.h"
+#include "defaults.h"
 
 /**
  * @brief Process keyboard/mouse input and calculate view matrix for OpenGL
@@ -29,7 +29,7 @@ class Camera {
    */
   Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
          glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
-         GLfloat yaw = Constants::Yaw, GLfloat pitch = Constants::Pitch);
+         GLfloat yaw = Defaults::Yaw, GLfloat pitch = Defaults::Pitch);
 
   /**
    * @brief Return calculated view matrix

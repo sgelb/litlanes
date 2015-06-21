@@ -5,9 +5,9 @@
 #include <vector>
 
 /**
- * @brief Constants
+ * @brief Default values
  */
-namespace Constants {
+namespace Defaults {
 // WINDOW
 
 //@{
@@ -65,6 +65,6 @@ static const int RiversPerTile = 1;
 
 // LEVEL OF DETAIL
 
-static const int MaximumLod = log2(Constants::TileWidth);
+static const int MaximumLod = log2(Defaults::TileWidth);
 
 } // namespace Constants

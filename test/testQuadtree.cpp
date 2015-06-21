@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <quadtree.h>
-#include <constants.h>
+#include <defaults.h>
 #include <vector>
 
 TEST(QuadtreeTest, indicesCountOfLowestLod) {
@@ -12,14 +12,14 @@ TEST(QuadtreeTest, indicesCountOfLowestLod) {
 
 TEST(QuadtreeTest, indicesCountOfMaximumLod) {
   Quadtree quadtree;
-  int expected = 6*Constants::TileWidth*Constants::TileWidth;
-  int result = quadtree.getIndicesOfLevel(Constants::MaximumLod).size();
+  int expected = 6*Defaults::TileWidth*Defaults::TileWidth;
+  int result = quadtree.getIndicesOfLevel(Defaults::MaximumLod).size();
   EXPECT_EQ(expected, result) << "Indices count differ: " << result;
 }
 
 TEST(QuadtreeTest, indicesPositionOfMinimumLod) {
   Quadtree quadtree;
-  unsigned int w = Constants::TileWidth;
+  unsigned int w = Defaults::TileWidth;
   std::vector<GLuint> expected = {0, w*(w+1), w*(w+1) + w, 0, w*(w+1) + w, w};
   std::vector<GLuint> indices = quadtree.getIndicesOfLevel(0);
   for (size_t i = 0; i < expected.size(); i++) {
@@ -29,7 +29,7 @@ TEST(QuadtreeTest, indicesPositionOfMinimumLod) {
 
 TEST(QuadtreeTest, indicesPositionOfLod1) {
   Quadtree quadtree;
-  unsigned int w = Constants::TileWidth;
+  unsigned int w = Defaults::TileWidth;
   std::vector<GLuint> expected = {
     // nw
     0, w*(w+1)/2, w*(w+1)/2 + w/2, 0, w*(w+1)/2 + w/2, w/2,
@@ -54,6 +54,6 @@ TEST(QuadtreeTest, lowestLodisNoLeaf) {
 }
 
 TEST(QuadtreeTest, maximumLodIsLeaf) {
-  Quadtree quadtree(Constants::MaximumLod, 0);
+  Quadtree quadtree(Defaults::MaximumLod, 0);
   EXPECT_TRUE(quadtree.isLeaf());
 }

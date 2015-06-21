@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "boundingbox.h"
-#include "constants.h"
+#include "defaults.h"
 
 /**
  * @brief Data structure for partitioning tile in different levels of detail

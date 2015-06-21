@@ -5,11 +5,11 @@ void TileManager::initialize(const glm::vec3 &currentPos) {
   previousPos_ = currentPos;
 
   // default algorithm for terrain generation is PerlinNoise
-  currentAlgorithm_ = Constants::Perlin;
+  currentAlgorithm_ = Defaults::Perlin;
   noise_ = std::shared_ptr<NoiseInterface>(new PerlinNoise);
   // add to cache
-  noiseCache_[Constants::Perlin] = noise_;
-  seaLevel_ = Constants::MaxMeshHeight / 5;
+  noiseCache_[Defaults::Perlin] = noise_;
+  seaLevel_ = Defaults::MaxMeshHeight / 5;
   showSea_ = true;
 
   // create first nine tiles, from (0,0) to (2,2)
@@ -33,10 +33,10 @@ void TileManager::initialize(const glm::vec3 &currentPos) {
 }
 
 void TileManager::update(glm::vec3 const &currentPos_) {
-  int currentTileX = std::floor(currentPos_.x / Constants::TileWidth);
-  int currentTileZ = std::floor(currentPos_.z / Constants::TileWidth);
-  int diffX = currentTileX - std::floor(previousPos_.x / Constants::TileWidth);
-  int diffZ = currentTileZ - std::floor(previousPos_.z / Constants::TileWidth);
+  int currentTileX = std::floor(currentPos_.x / Defaults::TileWidth);
+  int currentTileZ = std::floor(currentPos_.z / Defaults::TileWidth);
+  int diffX = currentTileX - std::floor(previousPos_.x / Defaults::TileWidth);
+  int diffZ = currentTileZ - std::floor(previousPos_.z / Defaults::TileWidth);
 
   previousPos_ = currentPos_;
 
@@ -154,16 +154,16 @@ void TileManager::setTileAlgorithm(const int &algorithm) {
   } else {
     // create new noise
     switch (algorithm) {
-    case Constants::Perlin:
+    case Defaults::Perlin:
       noise_ = std::shared_ptr<NoiseInterface>(new PerlinNoise);
       break;
-    case Constants::RidgedMulti:
+    case Defaults::RidgedMulti:
       noise_ = std::shared_ptr<NoiseInterface>(new RidgedMultiNoise);
       break;
-    case Constants::Billow:
+    case Defaults::Billow:
       noise_ = std::shared_ptr<NoiseInterface>(new BillowNoise);
       break;
-    case Constants::Random:
+    case Defaults::Random:
       noise_ = std::shared_ptr<NoiseInterface>(new RandomNoise);
       break;
     default:

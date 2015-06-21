@@ -5,8 +5,8 @@ Tile::Tile(const int &x, const int &z,
            const GLuint &tileWidth)
     : noise_(noise),
       tileWidth_(tileWidth),
-      xOffset_(x * Constants::TileWidth),
-      zOffset_(z * Constants::TileWidth) {
+      xOffset_(x * Defaults::TileWidth),
+      zOffset_(z * Defaults::TileWidth) {
   // initialize tile
   verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
   quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
@@ -120,9 +120,9 @@ void Tile::update(const GLfloat &deltaTime) {
 void Tile::render(const glm::mat4 &view) {
   // Projection
   glm::mat4 projection = glm::perspective(
-      Constants::Zoom, static_cast<GLfloat>(Constants::WindowWidth) /
-                           static_cast<GLfloat>(Constants::WindowHeight),
-      Constants::NearPlane, Constants::FarPlane);
+      Defaults::Zoom, static_cast<GLfloat>(Defaults::WindowWidth) /
+                           static_cast<GLfloat>(Defaults::WindowHeight),
+      Defaults::NearPlane, Defaults::FarPlane);
 
   // Get the uniform locations
   GLint modelLoc = glGetUniformLocation(shader_->getProgram(), "model");
@@ -192,7 +192,7 @@ void Tile::createVertices() {
       // use world space coordinates of x and z to create height generated with
       // noise algorithm
       y = (noise_->getValue(worldX, 0.0f, worldZ) + 1) / 2 *
-        Constants::MaxMeshHeight;
+        Defaults::MaxMeshHeight;
 
       // set position
       vertices_[idx].position =
@@ -207,7 +207,7 @@ void Tile::createVertices() {
 }
 
 void Tile::createTerrain() {
-  terrainIndices_ = quadtree_->getIndicesOfLevel(Constants::MaximumLod);
+  terrainIndices_ = quadtree_->getIndicesOfLevel(Defaults::MaximumLod);
 }
 
 void Tile::setShowSea(bool showSea) {
@@ -253,17 +253,17 @@ void Tile::createSea() {
 glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
   // very simple color model with 5 "height zones"
 
-  if (height > 0.9 * Constants::MaxMeshHeight) {
+  if (height > 0.9 * Defaults::MaxMeshHeight) {
     // snow
     glm::vec3 color = {0.8f, 0.8f, 0.8f};
     return color;
   }
-  if (height > 0.6 * Constants::MaxMeshHeight) {
+  if (height > 0.6 * Defaults::MaxMeshHeight) {
     // rock
     glm::vec3 color = {0.5f, 0.5f, 0.5f};
     return color;
   }
-  if (height > 0.15 * Constants::MaxMeshHeight) {
+  if (height > 0.15 * Defaults::MaxMeshHeight) {
     // forest
     glm::vec3 color = {0.2f, 0.4f, 0.25f};
     return color;
@@ -283,8 +283,8 @@ std::vector<GLuint> Tile::getIndices() {
 }
 
 void Tile::updateCoordinates(const int &x, const int &z) {
-  xOffset_ = x * Constants::TileWidth;
-  zOffset_ = z * Constants::TileWidth;
+  xOffset_ = x * Defaults::TileWidth;
+  zOffset_ = z * Defaults::TileWidth;
   createVertices();
   createTerrain();
   createSea();
@@ -318,7 +318,7 @@ float Tile::getHeightAtNeighborIndex(const int &curIdx, const int &neighborIdx) 
 
   // neighborIdx is on another tile, calculate coordinates and return height
   glm::vec3 coordinates = calculateCoordinates(curIdx, neighborIdx);
-  return (noise_->getValue(coordinates.x, 0.0f, coordinates.z) + 1) / 2 * Constants::MaxMeshHeight;
+  return (noise_->getValue(coordinates.x, 0.0f, coordinates.z) + 1) / 2 * Defaults::MaxMeshHeight;
 }
 
 glm::vec3 Tile::calculateCoordinates(const int &curIdx, const int &neighborIdx) {

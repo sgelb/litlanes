@@ -41,10 +41,10 @@ add_definitions(
 
 set(SOURCES 
   ${IMGUI}/imgui.cpp
+  ${IMGUI}/imgui_impl_glfw_gl3.cpp
   src/boundingbox.cpp
   src/camera.cpp
   src/game.cpp
-  src/imgui_impl_glfw_gl3.cpp
   src/main.cpp
   src/noise.cpp
   src/quadtree.cpp
@@ -56,14 +56,14 @@ set(SOURCES
 set(HEADER
   ${IMGUI}/imconfig.h
   ${IMGUI}/imgui.h
+  ${IMGUI}/imgui_impl_glfw_gl3.h
   ${IMGUI}/stb_rect_pack.h
   ${IMGUI}/stb_textedit.h
   ${IMGUI}/stb_truetype.h
   include/boundingbox.h
   include/camera.h
-  include/constants.h
+  include/defaults.h
   include/game.h
-  include/imgui_impl_glfw_gl3.h
   include/noise.h
   include/quadtree.h
   include/shader.h
@@ -100,7 +100,7 @@ if (BUILD_TESTS)
 
   set(TEST_HEADER
     include/boundingbox.h
-    include/constants.h
+    include/defaults.h
     include/noise.h
     include/quadtree.h
     include/shader.h

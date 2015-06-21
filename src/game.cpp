@@ -2,9 +2,9 @@
 
 Game::Game() : fillmode_(GL_FILL) {
   // position camera in center of 3*3 tiles
-  GLfloat coord = 3 * Constants::TileWidth / 2;
+  GLfloat coord = 3 * Defaults::TileWidth / 2;
   currentPos_ = glm::vec3(coord, 0.0f, coord);
-  camera_ = Camera(glm::vec3(currentPos_.x, 3.5*Constants::TileWidth, currentPos_.z));
+  camera_ = Camera(glm::vec3(currentPos_.x, 3.5*Defaults::TileWidth, currentPos_.z));
   tileManager_ = TileManager();
   guiClosed_ = false;
   leftMouseBtnPressed_ = false;
@@ -197,7 +197,7 @@ int Game::initializeGlfw() {
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
   // Create a GLFWwindow object that we can use for GLFW's functions
-  window_ = glfwCreateWindow(Constants::WindowWidth, Constants::WindowHeight,
+  window_ = glfwCreateWindow(Defaults::WindowWidth, Defaults::WindowHeight,
                              "litlanesfoss", nullptr, nullptr);
   if (!window_) {
     std::cerr << "Could not create GLFWwindow. Requires OpenGL 3.3 or higher." << std::endl;
@@ -226,7 +226,7 @@ int Game::initializeGlew() {
 
 void Game::initializeGl() {
   // Define the viewport dimensions
-  glViewport(0, 0, Constants::WindowWidth, Constants::WindowHeight);
+  glViewport(0, 0, Defaults::WindowWidth, Defaults::WindowHeight);
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_CULL_FACE);
@@ -249,7 +249,7 @@ void Game::toggleWireframe() {
 }
 
 void Game::showGui() {
-  static int algorithm = Constants::Perlin;
+  static int algorithm = Defaults::Perlin;
 
   if (guiClosed_) {
     return;
@@ -269,8 +269,8 @@ void Game::showGui() {
               1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
   // Current tile
-  int xTile = std::floor(currentPos_.x / Constants::TileWidth);
-  int zTile = std::floor(currentPos_.z / Constants::TileWidth);
+  int xTile = std::floor(currentPos_.x / Defaults::TileWidth);
+  int zTile = std::floor(currentPos_.z / Defaults::TileWidth);
   ImGui::Text("Current tile: %i,%i", xTile, zTile);
 
   // Keys
@@ -294,7 +294,7 @@ void Game::showGui() {
     }
 
     if (showSea) {
-      if (ImGui::SliderFloat("Sea level", &seaLevel, 0, Constants::MaxMeshHeight)) {
+      if (ImGui::SliderFloat("Sea level", &seaLevel, 0, Defaults::MaxMeshHeight)) {
         tileManager_.setSeaLevel(seaLevel);
       }
     }
@@ -312,11 +312,11 @@ void Game::showGui() {
 
     bool btnPressed = false;
     btnPressed |=
-      (ImGui::RadioButton("Perlin Noise / fBm", &algorithm, Constants::Perlin));
+      (ImGui::RadioButton("Perlin Noise / fBm", &algorithm, Defaults::Perlin));
     btnPressed |= (ImGui::RadioButton("Ridged-Multifractal Noise", &algorithm,
-          Constants::RidgedMulti));
-    btnPressed |= (ImGui::RadioButton("Billow Noise", &algorithm, Constants::Billow));
-    btnPressed |= (ImGui::RadioButton("Random Noise", &algorithm, Constants::Random));
+          Defaults::RidgedMulti));
+    btnPressed |= (ImGui::RadioButton("Billow Noise", &algorithm, Defaults::Billow));
+    btnPressed |= (ImGui::RadioButton("Random Noise", &algorithm, Defaults::Random));
 
     if (btnPressed) {
       tileManager_.setTileAlgorithm(algorithm);
@@ -327,14 +327,14 @@ void Game::showGui() {
     bool optsChanged = false;
 
     // TODO: better handling of available options for different algorithms
-    if (algorithm != Constants::Random) {
+    if (algorithm != Defaults::Random) {
       optsChanged |= (ImGui::InputInt("Seed", &options_.seed, 1));
       optsChanged |= (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
       optsChanged |=
         (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
       optsChanged |= (ImGui::SliderInt("Octaves", &options_.octaveCount, 1, 6));
 
-      if (algorithm != Constants::RidgedMulti) {
+      if (algorithm != Defaults::RidgedMulti) {
         optsChanged |=
           (ImGui::SliderFloat("Persistence", &options_.persistence, 0, 1));
       }

@@ -5,7 +5,7 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
 
   // offset of vertices in this level. root is level 0 and
   // highest level of detail has offset of 1
-  int offset = pow(2, Constants::MaximumLod - level_);
+  int offset = pow(2, Defaults::MaximumLod - level_);
 
   /*
 
@@ -23,7 +23,7 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
 
   int tl = startpoint;
   int tr = startpoint + offset;
-  int bl = tl + (Constants::TileWidth + 1) * offset;
+  int bl = tl + (Defaults::TileWidth + 1) * offset;
   int br = bl + offset;
 
   // left triangle
@@ -44,13 +44,13 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
                       static_cast<float>(offset) / 2.0f));
 
   // add children
-  if (level_ < Constants::MaximumLod) {
+  if (level_ < Defaults::MaximumLod) {
     this->isLeaf_ = false;
 
     // calculate starting points
     int tlChild = tl;
     int trChild = tl + offset / 2;
-    int blChild = tl + (Constants::TileWidth + 1) * offset / 2;
+    int blChild = tl + (Defaults::TileWidth + 1) * offset / 2;
     int brChild = blChild + offset / 2;
 
     // add children counterclockwise

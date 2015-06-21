@@ -7,7 +7,7 @@
 #include <iostream>
 #include <limits>
 
-#include "constants.h"
+#include "defaults.h"
 
 
 struct NoiseOptions {

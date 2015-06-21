@@ -5,7 +5,7 @@ NoiseOptions NoiseInterface::getOptions() {
 }
 
 float NoiseInterface::applyResolution(const float &input) {
-  return input / Constants::Resolution;
+  return input / Defaults::Resolution;
 }
 
 

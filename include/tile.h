@@ -13,7 +13,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "constants.h"
+#include "defaults.h"
 #include "quadtree.h"
 #include "shader.h"
 #include "noise.h"
@@ -39,7 +39,7 @@ class Tile {
   explicit Tile(const int &x, const int &z,
                 const std::shared_ptr<NoiseInterface> &noise =
                     std::shared_ptr<NoiseInterface>(new PerlinNoise),
-                const GLuint &tileWidth = Constants::TileWidth);
+                const GLuint &tileWidth = Defaults::TileWidth);
   /**
    * @brief Set up shader and opengl buffers
    */
