@@ -9,7 +9,6 @@
 
 #include "defaults.h"
 
-
 struct NoiseOptions {
   float frequency;
   float lacunarity;
@@ -17,7 +16,6 @@ struct NoiseOptions {
   float persistence;
   int seed;
 };
-
 
 class NoiseInterface {
  public:
@@ -56,6 +54,7 @@ class RidgedMultiNoise : public NoiseInterface {
   std::shared_ptr<noise::module::RidgedMulti> noise_;
 };
 
+
 class BillowNoise : public NoiseInterface {
  public:
   BillowNoise();
@@ -67,10 +66,12 @@ class BillowNoise : public NoiseInterface {
   std::shared_ptr<noise::module::Billow> noise_;
 };
 
+
 class RandomNoise : public NoiseInterface {
  public:
   float getValue(const float &x, const float &y, const float &z);
-  void initializeOptions() {}
-  void setOptions(const NoiseOptions &options) {}
+  void initializeOptions() {
+  }
+  void setOptions(const NoiseOptions &options) {
+  }
 };
-

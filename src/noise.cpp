@@ -8,7 +8,6 @@ float NoiseInterface::applyResolution(const float &input) {
   return input / Defaults::Resolution;
 }
 
-
 // Perlin
 
 PerlinNoise::PerlinNoise() {
@@ -36,7 +35,6 @@ void PerlinNoise::setOptions(const NoiseOptions &options) {
 GLfloat PerlinNoise::getValue(const float &x, const float &y, const float &z) {
   return noise_->GetValue(applyResolution(x), y, applyResolution(z));
 }
-
 
 // RidgedMulti
 
@@ -67,7 +65,6 @@ void RidgedMultiNoise::setOptions(const NoiseOptions &options) {
   noise_->SetSeed(options_.seed);
 }
 
-
 // Billow
 
 BillowNoise::BillowNoise() {
@@ -96,12 +93,9 @@ void BillowNoise::setOptions(const NoiseOptions &options) {
   noise_->SetSeed(options_.seed);
 };
 
-
 // Random
 
 float RandomNoise::getValue(const float &x, const float &y, const float &z) {
   // return random float between 0 and 1
   return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 }
-
-

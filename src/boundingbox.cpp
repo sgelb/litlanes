@@ -7,7 +7,6 @@ BoundingBox::BoundingBox(glm::vec3 center, float extents)
 bool BoundingBox::intersectsWithSphere(const glm::vec3 &sphere,
                                        const float &radius) {
   // use euclidian distance from box to sphere to detect intersecting
-
   float distance = 0;
   float s = 0;
 
@@ -29,5 +28,5 @@ bool BoundingBox::intersectsWithSphere(const glm::vec3 &sphere,
   }
 
   // avoid expensive calculation of square root of distance by squaring radius
-  return distance <= radius * radius;
-}
+  // instead. Returns True if sphere intersects with bounding box
+  return distance <= radius * radius; }

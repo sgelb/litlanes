@@ -20,7 +20,7 @@ TEST(TileTest, indicesCount) {
 TEST(TileTest, indicesFirstTriangle) {
   Tile tile(0, 0);
   std::vector<GLuint> expected = {0, Defaults::TileWidth + 1,
-    Defaults::TileWidth + 2};
+                                  Defaults::TileWidth + 2};
   std::vector<GLuint> indices = tile.getIndices();
   for (size_t i = 0; i < expected.size(); i++) {
     EXPECT_EQ(expected[i], indices[i]) << "Vectors differ at index " << i;

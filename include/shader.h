@@ -5,30 +5,21 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
-/**
- * @brief Handle vertex and fragment shaders
- */
+// Handle vertex and fragment shaders
 class Shader {
  public:
-  /**
-   * @brief Load and compile shader files
-   *
-   * @param vertexSourcePath Path to vertex shader file
-   * @param fragmentSourcePath Path to fragment shader file
-   */
-  Shader(const GLchar *vertexSourcePath, const GLchar *fragmentSourcePath);
-  /**
-   * @brief Use this shader program in OpenGL
-   */
+  Shader();
+  
+  void load(const GLchar *shaderPath, GLenum shaderType);
+  /* const GLchar *vertexSourcePath, const GLchar *fragmentSourcePath); */
   void use();
-  /**
-   * @brief Return shader program
-   *
-   * @return Shader program compiled from vertex and fragment shader sources
-   */
   GLuint getProgram();
 
  private:
   GLuint program_;
+  std::vector<GLuint> shaderIds_;
+
+  void createProgram();
 };

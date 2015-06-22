@@ -2,28 +2,13 @@
 
 #include <glm/glm.hpp>
 
-/**
- * @brief Simplified Axis-Aligned Square Bounding Box (AABB) using a cube
- */
+// Simplified Axis-Aligned Square Bounding Box (AABB)
 class BoundingBox {
  public:
-  /**
-   * @brief Constructor
-   *
-   * @param center center of AABB
-   * @param extents length from center to faces which is half the length of an
-   * cube edge
-   */
+  // create square AABB around center edge length of 2*extends
   BoundingBox(glm::vec3 center, float extents);
 
-  /**
-   * @brief Test if sphere intersects with bounding box
-   *
-   * @param spherePosition position of sphere
-   * @param sphereRadius radius of sphere
-   *
-   * @return \c True if sphere intersects with bounding box, \c False otherwise
-   */
+  // True if sphere intersects with bounding box
   bool intersectsWithSphere(const glm::vec3 &spherePosition,
                             const float &sphereRadius);
 

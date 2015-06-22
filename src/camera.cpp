@@ -11,7 +11,7 @@ Camera::Camera(glm::vec3 position, glm::vec3 up, GLfloat yaw, GLfloat pitch)
   updateCameraVectors();
 }
 
-// return the view matrix 
+// calculate and return the view matrix
 glm::mat4 Camera::getViewMatrix() {
   return glm::lookAt(position_, position_ + front_, up_);
 }
@@ -21,30 +21,30 @@ void Camera::processKeyboard(CameraMovement direction, GLfloat deltaTime) {
   GLfloat velocity_ = movementSpeed_ * deltaTime;
 
   switch (direction) {
-  case CameraMovement::FORWARD:
-    position_ += front_ * velocity_;
-    break;
-  case CameraMovement::BACKWARD:
-    position_ -= front_ * velocity_;
-    break;
-  case CameraMovement::LEFT:
-    position_ -= right_ * velocity_;
-    break;
-  case CameraMovement::RIGHT:
-    position_ += right_ * velocity_;
-    break;
-  case CameraMovement::UP:
-    position_ += worldUp_ * velocity_;
-    break;
-  case CameraMovement::DOWN:
-    position_ -= worldUp_ * velocity_;
-    break;
-  default:
-    break;
+    case CameraMovement::FORWARD:
+      position_ += front_ * velocity_;
+      break;
+    case CameraMovement::BACKWARD:
+      position_ -= front_ * velocity_;
+      break;
+    case CameraMovement::LEFT:
+      position_ -= right_ * velocity_;
+      break;
+    case CameraMovement::RIGHT:
+      position_ += right_ * velocity_;
+      break;
+    case CameraMovement::UP:
+      position_ += worldUp_ * velocity_;
+      break;
+    case CameraMovement::DOWN:
+      position_ -= worldUp_ * velocity_;
+      break;
+    default:
+      break;
   }
 }
 
-// processes mouse input, changes camera angle
+// process mouse input and update camera angles
 void Camera::processMouseMovement(GLfloat xoffset, GLfloat yoffset) {
   xoffset *= mouseSensitivity_;
   yoffset *= mouseSensitivity_;
@@ -52,15 +52,24 @@ void Camera::processMouseMovement(GLfloat xoffset, GLfloat yoffset) {
   yaw_ += xoffset;   // rotate around local y-axis
   pitch_ += yoffset; // rotate around local x-axis
 
-  // prevent camera to flip over
+  // prevent camera from flipping over when looking down
   if (pitch_ > 89.0f) {
     pitch_ = 89.0f;
   }
+
   if (pitch_ < -89.0f) {
     pitch_ = -89.0f;
   }
 
   updateCameraVectors();
+}
+
+glm::vec3 Camera::getPosition() {
+  return position_;
+}
+
+void Camera::setMovementSpeed(const GLfloat &speed) {
+  movementSpeed_ = speed;
 }
 
 void Camera::updateCameraVectors() {
@@ -76,11 +85,3 @@ void Camera::updateCameraVectors() {
   up_ = glm::normalize(glm::cross(right_, front_));
 }
 
-// get current camera position
-glm::vec3 Camera::getPosition() {
-  return position_;
-}
-
-void Camera::setMovementSpeed(const GLfloat &speed) {
-  movementSpeed_ = speed;
-}

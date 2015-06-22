@@ -2,20 +2,23 @@
 
 Quadtree::Quadtree(const int &level, const int &startpoint)
     : level_(level), startpoint_(startpoint) {
+  // A tree data structure in which each node has exactly four children. Used to
+  // recursivly partition a tile in different levels of details.
 
-  // offset of vertices in this level. root is level 0 and
-  // highest level of detail has offset of 1
+  // Offset/Distance between vertices in this level. Offset on lod 0 is
+  // TileWidth and decreases with every iteration. highest level of detail has
+  // offset of 1.
   int offset = pow(2, Defaults::MaximumLod - level_);
 
   /*
 
   +---x
   |
-  |   tl_tr  We split each quad in two triangles and put their indices
-  y   |\  |  counterclockwise in indices-Array:
+  |   TL_TR  We split each quad in two triangles and put their six indices
+  y   |\  |  counterclockwise in array indices_:
       | \ |  Left triangle:  TL->BL->BR
       |__\|  Right triangle: TL->BR->TR
-      bl br
+      BL BR
 
   */
 
@@ -36,19 +39,11 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
   indices_[4] = br;
   indices_[5] = tr;
 
-  // create bounding box
-  // this would be used if i will ever implement LOD
-  boundingBox_ = std::unique_ptr<BoundingBox>(
-      new BoundingBox(glm::vec3(static_cast<float>((tr - tl)) / 2.0f,
-                                0.0f,
-                                static_cast<float>((bl - tl)) / 2.0f),
-                      static_cast<float>(offset) / 2.0f));
-
-  // add children
+  // add children until we reached MaximumLod
   if (level_ < Defaults::MaximumLod) {
     this->isLeaf_ = false;
 
-    // calculate starting points
+    // calculate starting points of children
     int tlChild = tl;
     int trChild = tl + offset / 2;
     int blChild = tl + (Defaults::TileWidth + 1) * offset / 2;
@@ -69,10 +64,12 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
 }
 
 bool Quadtree::isLeaf() {
+  // a quadtree without children is a leaf
   return isLeaf_;
 }
 
 std::vector<GLuint> Quadtree::getIndicesOfLevel(const int &lod) {
+  // return indices for specified LOD
   if (isLeaf_ || level_ == lod) {
     return indices_;
   }

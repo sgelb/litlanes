@@ -1,17 +1,18 @@
 #include "game.h"
 
-Game::Game() : fillmode_(GL_FILL) {
-  // position camera in center of 3*3 tiles
-  GLfloat coord = 3 * Defaults::TileWidth / 2;
-  currentPos_ = glm::vec3(coord, 0.0f, coord);
-  camera_ = Camera(glm::vec3(currentPos_.x, 3.5*Defaults::TileWidth, currentPos_.z));
-  tileManager_ = TileManager();
-  guiClosed_ = false;
-  leftMouseBtnPressed_ = false;
+Game::Game()
+    : fillmode_(GL_FILL),
+      keys_{0},
+      guiClosed_(false),
+      leftMouseBtnPressed_(false),
+      tileManager_(std::unique_ptr<TileManager>(new TileManager)),
+      currentPos_(Defaults::CameraPosition) {
+  camera_ = Camera(
+      glm::vec3(currentPos_.x, 3.5 * Defaults::TileWidth, currentPos_.z));
 }
 
 int Game::run() {
-  // Initalize
+  // Initialize
   if (!initializeGlfw()) {
     return 1;
   }
@@ -19,9 +20,8 @@ int Game::run() {
     return 2;
   }
   initializeGl();
-  tileManager_.initialize(currentPos_);
-  options_ = tileManager_.getOptions();
-
+  tileManager_->initialize(currentPos_);
+  options_ = tileManager_->getOptions();
   ImGui_ImplGlfwGL3_Init(window_, true);
 
   deltaTime_ = 0.0f; // Time between current and last frame
@@ -53,8 +53,8 @@ int Game::run() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Update and render tiles
-    tileManager_.update(currentPos_);
-    tileManager_.renderAll(deltaTime_, camera_.getViewMatrix());
+    tileManager_->update(currentPos_);
+    tileManager_->renderAll(deltaTime_, camera_.getViewMatrix());
 
     // Render GUI
     if (!guiClosed_) {
@@ -72,7 +72,7 @@ int Game::run() {
   ImGui_ImplGlfwGL3_Shutdown();
 
   // Clean up tiles
-  tileManager_.cleanUp();
+  tileManager_->cleanUp();
 
   // Terminate GLFW, clearing any resources allocated by GLFW.
   glfwDestroyWindow(window_);
@@ -102,10 +102,10 @@ void Game::do_movement(const GLfloat &deltaTime) {
   }
 }
 
-// Is called whenever a key is pressed/released via GLFW
 void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
                         int mode) {
 
+  // Quit program
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, GL_TRUE);
   }
@@ -116,15 +116,17 @@ void Game::key_callback(GLFWwindow *window, int key, int scancode, int action,
     return;
   }
 
-  // set commands
+  // Toggle GUI
   if (key == GLFW_KEY_TAB && action == GLFW_PRESS) {
     game->toggleGui();
   }
+
+  // Toggle wireframe
   if (key == GLFW_KEY_X && action == GLFW_PRESS) {
     game->toggleWireframe();
   }
 
-  // set movement keys.
+  // Set movement keys
   if (key >= 0 && key < 1024) {
     if (action == GLFW_PRESS) {
       game->keys_[key] = true;
@@ -161,9 +163,8 @@ void Game::mouse_callback(GLFWwindow *window, double xpos, double ypos) {
   game->camera_.processMouseMovement(xoffset, yoffset);
 }
 
-
 void Game::mouseBtn_callback(GLFWwindow *window, int button, int action,
-    int mods) {
+                             int mods) {
 
   Game *game = static_cast<Game *>(glfwGetWindowUserPointer(window));
 
@@ -173,11 +174,10 @@ void Game::mouseBtn_callback(GLFWwindow *window, int button, int action,
   }
 
   if (action == GLFW_RELEASE) {
-    GLFWcursor* handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+    GLFWcursor *handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     game->setLeftMouseBtnPressed(false);
     return;
   }
-
 }
 
 void Game::setLeftMouseBtnPressed(bool isPressed) {
@@ -200,7 +200,8 @@ int Game::initializeGlfw() {
   window_ = glfwCreateWindow(Defaults::WindowWidth, Defaults::WindowHeight,
                              "litlanesfoss", nullptr, nullptr);
   if (!window_) {
-    std::cerr << "Could not create GLFWwindow. Requires OpenGL 3.3 or higher." << std::endl;
+    std::cerr << "Could not create GLFWwindow. Requires OpenGL 3.3 or higher."
+              << std::endl;
     return GL_FALSE;
   }
   glfwMakeContextCurrent(window_);
@@ -258,17 +259,17 @@ void Game::showGui() {
   ImGui_ImplGlfwGL3_NewFrame();
   ImGui::BeginPopup(&guiClosed_);
 
-  // Style
+  // Style. No rounded corners
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
-  // Position
+  // Position. TopLeft
   ImGui::SetWindowPos(ImVec2(0, 0), ImGuiSetCond_FirstUseEver);
 
-  // FPS
+  // Show FPS
   ImGui::Text("Avg %.3f ms/frame (%.1f FPS)",
               1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
-  // Current tile
+  // Show current tile
   int xTile = std::floor(currentPos_.x / Defaults::TileWidth);
   int zTile = std::floor(currentPos_.z / Defaults::TileWidth);
   ImGui::Text("Current tile: %i,%i", xTile, zTile);
@@ -280,25 +281,20 @@ void Game::showGui() {
     ImGui::BulletText("<TAB> hides/shows this menu");
   }
 
-  // Camera options
-  /* if (ImGui::CollapsingHeader("Camera")) { */
-  /*   (ImGui::SliderFloat("Speed", &camera_->speed, 1, 100)); */
-  /* } */
-
   if (ImGui::CollapsingHeader("Map Options")) {
-    bool showSea = tileManager_.getShowSea();
-    float seaLevel = tileManager_.getSeaLevel();
+    bool showSea = tileManager_->getShowSea();
+    float seaLevel = tileManager_->getSeaLevel();
 
     if (ImGui::Checkbox("Show sea", &showSea)) {
-      tileManager_.setShowSea(showSea);
+      tileManager_->setShowSea(showSea);
     }
 
     if (showSea) {
-      if (ImGui::SliderFloat("Sea level", &seaLevel, 0, Defaults::MaxMeshHeight)) {
-        tileManager_.setSeaLevel(seaLevel);
+      if (ImGui::SliderFloat("Sea level", &seaLevel, 0,
+                             Defaults::MaxMeshHeight)) {
+        tileManager_->setSeaLevel(seaLevel);
       }
     }
-
   }
 
   // Algorithm
@@ -311,16 +307,18 @@ void Game::showGui() {
     // following results.
 
     bool btnPressed = false;
-    btnPressed |=
-      (ImGui::RadioButton("Perlin Noise / fBm", &algorithm, Defaults::Perlin));
+    btnPressed |= (ImGui::RadioButton("Perlin Noise / fBm", &algorithm,
+                                      Defaults::Perlin));
     btnPressed |= (ImGui::RadioButton("Ridged-Multifractal Noise", &algorithm,
-          Defaults::RidgedMulti));
-    btnPressed |= (ImGui::RadioButton("Billow Noise", &algorithm, Defaults::Billow));
-    btnPressed |= (ImGui::RadioButton("Random Noise", &algorithm, Defaults::Random));
+                                      Defaults::RidgedMulti));
+    btnPressed |=
+        (ImGui::RadioButton("Billow Noise", &algorithm, Defaults::Billow));
+    btnPressed |=
+        (ImGui::RadioButton("Random Noise", &algorithm, Defaults::Random));
 
     if (btnPressed) {
-      tileManager_.setTileAlgorithm(algorithm);
-      options_ = tileManager_.getOptions();
+      tileManager_->setTileAlgorithm(algorithm);
+      options_ = tileManager_->getOptions();
     }
 
     // Algorithm Options
@@ -329,19 +327,20 @@ void Game::showGui() {
     // TODO: better handling of available options for different algorithms
     if (algorithm != Defaults::Random) {
       optsChanged |= (ImGui::InputInt("Seed", &options_.seed, 1));
-      optsChanged |= (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
       optsChanged |=
-        (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
+          (ImGui::SliderFloat("Frequency", &options_.frequency, 1, 6));
+      optsChanged |=
+          (ImGui::SliderFloat("Lacunarity", &options_.lacunarity, 0, 4));
       optsChanged |= (ImGui::SliderInt("Octaves", &options_.octaveCount, 1, 6));
 
       if (algorithm != Defaults::RidgedMulti) {
         optsChanged |=
-          (ImGui::SliderFloat("Persistence", &options_.persistence, 0, 1));
+            (ImGui::SliderFloat("Persistence", &options_.persistence, 0, 1));
       }
     }
 
     if (optsChanged) {
-      tileManager_.setTileAlgorithmOptions(options_);
+      tileManager_->setTileAlgorithmOptions(options_);
     }
   }
 
