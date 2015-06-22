@@ -37,6 +37,7 @@ Quadtree::Quadtree(const int &level, const int &startpoint)
   indices_[5] = tr;
 
   // create bounding box
+  // this would be used if i will ever implement LOD
   boundingBox_ = std::unique_ptr<BoundingBox>(
       new BoundingBox(glm::vec3(static_cast<float>((tr - tl)) / 2.0f,
                                 0.0f,
