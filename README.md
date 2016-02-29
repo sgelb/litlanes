@@ -10,9 +10,9 @@ factors like frequency or lacunarity influence the outcome.
 ### Dependencies
 
 - C++11-compatible compiler
-- Cmake
+- CMake
 - OpenGL 3.3-compatible graphics card
-- Runs on Linux. Should run on Windows, but its untested
+- Runs on Linux. Should run on Windows, but not tested
 
 ### Build and run instructions
 
