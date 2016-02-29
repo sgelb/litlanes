@@ -1,15 +1,34 @@
+## litlanes
 
-## Dependencies
+Demonstration of various algorithms for procedural generation of spatial
+infinite landscapes. Focuses on showing the basic differences of Perlin
+Noise/fBm, Ridged-Multifractal Noise, Billow Noise and Random Noise and how
+factors like frequency or lacunarity influence the outcome.
 
-- C++11 compatible compiler
+![Screenshot](/screenshot.png)
 
+### Dependencies
 
-## How to build
+- C++11-compatible compiler
+- OpenGL 3.3-compatible graphics card
+- Runs on Linux. Should run on Windows, but its untested
 
-- Change into `build` folder
-- Run `cmake ..` or `cmake-gui ..` or `ccmake ..`
+### Build and run instructions
 
+Build with `cd build && cmake .. && make`
 
-## Disable vsync to outmax fps
+Run with `cd bin && ./litlanes`
 
-- On Linux using Mesa drivers start with ```vblank_mode=0 ./litlanes```
+### Todo
+
+- resizable window
+- better handling of algorithm options
+- show wireframe in solid color
+- remove code repetition in buffer setup
+- add option for number and size of rendered tiles
+- implement level of detail using Quadtrees (see Ulrich paper)
+- basic textures/color models
+- basic implementation of rivers
+- skybox / fog
+- basic animation of sea
+
