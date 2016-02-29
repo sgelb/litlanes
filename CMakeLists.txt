@@ -2,6 +2,9 @@
 cmake_minimum_required (VERSION 2.6)
 project (litlanes)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+if (win32)  # windows32 and windows64
+  set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
+endif()
 set(IMGUI "external/imgui-1.38/" CACHE PATH "Path to imgui")
 
 # Options. Turn on/off with 'cmake -Dmyvarname=ON/OFF' 
