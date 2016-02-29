@@ -22,14 +22,14 @@ Run with `cd bin && ./litlanes`
 
 ### Todo
 
--[ ] resizable window
--[ ] better handling of algorithm options
--[ ] show wireframe in solid color
--[ ] remove code repetition in buffer setup
--[ ] add option for number and size of rendered tiles
--[ ] implement level of detail using Quadtrees (see Ulrich paper)
--[ ] basic textures/color models
--[ ] basic implementation of rivers
--[ ] skybox / fog
--[ ] basic animation of sea
+- [ ] resizable window
+- [ ] better handling of algorithm options
+- [ ] show wireframe in solid color
+- [ ] remove code repetition in buffer setup
+- [ ] add option for number and size of rendered tiles
+- [ ] implement level of detail using Quadtrees (see Ulrich paper)
+- [ ] basic textures/color models
+- [ ] basic implementation of rivers
+- [ ] skybox / fog
+- [ ] basic animation of sea
 
