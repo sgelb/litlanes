@@ -278,7 +278,8 @@ void Game::showGui() {
   if (ImGui::CollapsingHeader("Keys")) {
     ImGui::BulletText("Hold left mouse button to look around");
     ImGui::BulletText("Move with <A>, <S>, <D>, <W>, <E> and <Q>");
-    ImGui::BulletText("<TAB> hides/shows this menu");
+    ImGui::BulletText("Toggle wireframe with <X>");
+    ImGui::BulletText("Toggle this menu with <TAB>");
   }
 
   if (ImGui::CollapsingHeader("Map Options")) {
