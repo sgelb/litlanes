@@ -2,8 +2,11 @@
 runTests
 litlanes*
 
-# ignore build directory
+# ignore build- and bin directories
 build/*
+bin/*
 
 # ignore doxygen directory
 doxygen/*
+
+imgui.ini
