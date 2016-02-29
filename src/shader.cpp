@@ -7,7 +7,7 @@ Shader::Shader() {
 
 // Load vertex- and fragmentshader from path
 void Shader::load(const GLchar *shaderPath, GLenum shaderType) {
-    std::string code;
+  std::string code;
 
   // Retrieve shader source code
   try {

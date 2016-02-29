@@ -11,7 +11,7 @@
 class Shader {
  public:
   Shader();
-  
+
   void load(const GLchar *shaderPath, GLenum shaderType);
   /* const GLchar *vertexSourcePath, const GLchar *fragmentSourcePath); */
   void use();

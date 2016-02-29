@@ -30,7 +30,6 @@ static const GLuint Resolution = 64;
 // Maximum height of terrain
 static const GLfloat MaxMeshHeight = Resolution / 2;
 
-
 // CAMERA
 
 // Distance to near/far plane of view frustum
@@ -45,7 +44,6 @@ static const GLfloat Speed = 60.0f;
 static const GLfloat Sensitivity = 0.5f;
 static const glm::vec3 CameraPosition =
     glm::vec3(3 * Defaults::TileWidth / 2, 0.0f, 3 * Defaults::TileWidth / 2);
-
 
 // LEVEL OF DETAIL
 

@@ -21,26 +21,26 @@ void Camera::processKeyboard(CameraMovement direction, GLfloat deltaTime) {
   GLfloat velocity_ = movementSpeed_ * deltaTime;
 
   switch (direction) {
-    case CameraMovement::FORWARD:
-      position_ += front_ * velocity_;
-      break;
-    case CameraMovement::BACKWARD:
-      position_ -= front_ * velocity_;
-      break;
-    case CameraMovement::LEFT:
-      position_ -= right_ * velocity_;
-      break;
-    case CameraMovement::RIGHT:
-      position_ += right_ * velocity_;
-      break;
-    case CameraMovement::UP:
-      position_ += worldUp_ * velocity_;
-      break;
-    case CameraMovement::DOWN:
-      position_ -= worldUp_ * velocity_;
-      break;
-    default:
-      break;
+  case CameraMovement::FORWARD:
+    position_ += front_ * velocity_;
+    break;
+  case CameraMovement::BACKWARD:
+    position_ -= front_ * velocity_;
+    break;
+  case CameraMovement::LEFT:
+    position_ -= right_ * velocity_;
+    break;
+  case CameraMovement::RIGHT:
+    position_ += right_ * velocity_;
+    break;
+  case CameraMovement::UP:
+    position_ += worldUp_ * velocity_;
+    break;
+  case CameraMovement::DOWN:
+    position_ -= worldUp_ * velocity_;
+    break;
+  default:
+    break;
   }
 }
 
@@ -84,4 +84,3 @@ void Camera::updateCameraVectors() {
   right_ = glm::normalize(glm::cross(front_, worldUp_));
   up_ = glm::normalize(glm::cross(right_, front_));
 }
-

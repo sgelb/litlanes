@@ -29,4 +29,5 @@ bool BoundingBox::intersectsWithSphere(const glm::vec3 &sphere,
 
   // avoid expensive calculation of square root of distance by squaring radius
   // instead. Returns True if sphere intersects with bounding box
-  return distance <= radius * radius; }
+  return distance <= radius * radius;
+}

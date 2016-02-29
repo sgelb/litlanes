@@ -6,10 +6,10 @@ Tile::Tile(const int &x, const int &z,
     : noise_(noise),
       tileWidth_(tileWidth),
       xOffset_(x * Defaults::TileWidth),
-      zOffset_(z * Defaults::TileWidth) {
+      zOffset_(z * Defaults::TileWidth),
+      quadtree_(std::unique_ptr<Quadtree>(new Quadtree)),
+      verticesCount_((tileWidth_ + 1) * (tileWidth_ + 1)) {
   // initialize tile
-  verticesCount_ = (tileWidth_ + 1) * (tileWidth_ + 1);
-  quadtree_ = std::unique_ptr<Quadtree>(new Quadtree);
   createVertices();
   createTerrain();
   createSea();
@@ -115,7 +115,7 @@ void Tile::update(const GLfloat &deltaTime) {
   glUniform3f(lightPosLoc_, lightPos_.x, lightPos_.y, lightPos_.z);
 }
 
-void Tile::render(const glm::mat4 &view) {
+void Tile::render(const glm::mat4 &viewMatrix) {
   // Projection
   glm::mat4 projection = glm::perspective(
       Defaults::Zoom, static_cast<GLfloat>(Defaults::WindowWidth) /
@@ -128,13 +128,13 @@ void Tile::render(const glm::mat4 &view) {
   GLint projLoc = glGetUniformLocation(shader_->getProgram(), "projection");
 
   // Pass the matrices to the shader
-  glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+  glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(viewMatrix));
   glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
   // Calculate the model matrix and pass it to shader before drawing
-  glm::mat4 model;
-  model = glm::translate(model, glm::vec3(-0.5f, 0.0f, -0.5f));
-  glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+  glm::mat4 modelMatrix;
+  modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.5f, 0.0f, -0.5f));
+  glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMatrix));
 
   // Finally, draw tile elements
   glBindVertexArray(terrainVAO_);
@@ -151,7 +151,6 @@ void Tile::render(const glm::mat4 &view) {
 }
 
 void Tile::cleanup() {
-  // Properly de-allocate all resources once they've outlived their purpose
   glDeleteVertexArrays(1, &terrainVAO_);
   glDeleteVertexArrays(1, &seaVAO_);
 }
@@ -271,6 +270,7 @@ glm::vec3 Tile::colorFromHeight(const GLfloat &height) {
 }
 
 std::vector<Vertex> Tile::getVertices() {
+  // used for testing
   return vertices_;
 }
 
@@ -288,7 +288,7 @@ void Tile::updateCoordinates(const int &x, const int &z) {
   setupBuffers();
 }
 
-void Tile::updateAlgorithm(const std::shared_ptr<NoiseInterface> noise) {
+void Tile::changeAlgorithm(const std::shared_ptr<NoiseInterface> noise) {
   noise_ = noise;
   createVertices();
   createTerrain();

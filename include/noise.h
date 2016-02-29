@@ -30,7 +30,6 @@ class NoiseInterface {
   float applyResolution(const float &input);
 };
 
-
 class PerlinNoise : public NoiseInterface {
  public:
   PerlinNoise();
@@ -41,7 +40,6 @@ class PerlinNoise : public NoiseInterface {
  private:
   std::shared_ptr<noise::module::Perlin> noise_;
 };
-
 
 class RidgedMultiNoise : public NoiseInterface {
  public:
@@ -54,7 +52,6 @@ class RidgedMultiNoise : public NoiseInterface {
   std::shared_ptr<noise::module::RidgedMulti> noise_;
 };
 
-
 class BillowNoise : public NoiseInterface {
  public:
   BillowNoise();
@@ -65,7 +62,6 @@ class BillowNoise : public NoiseInterface {
  private:
   std::shared_ptr<noise::module::Billow> noise_;
 };
-
 
 class RandomNoise : public NoiseInterface {
  public:

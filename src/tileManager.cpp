@@ -133,7 +133,7 @@ void TileManager::renderAll(const GLfloat &deltaTime,
 }
 
 void TileManager::cleanUp() {
-  // Clean up tile
+  // Clean up tiles
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->cleanup();
   }
@@ -175,7 +175,7 @@ void TileManager::setTileAlgorithm(const int &algorithm) {
 
   // update tiles
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
-    tiles_[idx]->updateAlgorithm(noise_);
+    tiles_[idx]->changeAlgorithm(noise_);
   }
 }
 
@@ -187,12 +187,8 @@ void TileManager::setTileAlgorithmOptions(const NoiseOptions &options) {
   noise_->setOptions(options);
   // update tiles
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
-    tiles_[idx]->updateAlgorithm(noise_);
+    tiles_[idx]->changeAlgorithm(noise_);
   }
-}
-
-float TileManager::getSeaLevel() {
-  return seaLevel_;
 }
 
 bool TileManager::getShowSea() {
@@ -204,6 +200,10 @@ void TileManager::setShowSea(bool showSea) {
   for (size_t idx = 0; idx < tiles_.size(); idx++) {
     tiles_[idx]->setShowSea(showSea_);
   }
+}
+
+float TileManager::getSeaLevel() {
+  return seaLevel_;
 }
 
 void TileManager::setSeaLevel(const float &seaLevel) {
